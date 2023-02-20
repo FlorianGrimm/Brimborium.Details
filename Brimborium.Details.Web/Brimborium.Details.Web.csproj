@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Brimborium.Details</RootNamespace>
+    <UserSecretsId>6807b649-2116-486d-88a9-a8a20fe3601e</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Brimborium.Registrator" Version="1.0.5-gcf38eabe70" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Brimborium.Details.Library\Brimborium.Details.Library.csproj" />
+  </ItemGroup>
+
+</Project>

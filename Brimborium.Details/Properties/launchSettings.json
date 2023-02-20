@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Brimborium.Details": {
+      "commandName": "Project",
+      "commandLineArgs": "-DetailsConfiguration \"C:\\github.com\\FlorianGrimm\\Brimborium.Net\\Brimborium.Details\\details.json\"",
+      "workingDirectory": "C:\\github.com\\FlorianGrimm\\Brimborium.Net\\Brimborium.Details\\"
+    }
+  }
+}

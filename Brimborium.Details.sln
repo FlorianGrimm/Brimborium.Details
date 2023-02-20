@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Details", "Brimborium.Details\Brimborium.Details.csproj", "{6BC74486-A175-4C80-95DD-B53C0C46D60A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Details.Tests", "Brimborium.Details.Tests\Brimborium.Details.Tests.csproj", "{7243C967-CF10-452E-9FF7-B187CDC6D424}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Details.Web", "Brimborium.Details.Web\Brimborium.Details.Web.csproj", "{948990EC-00A6-466A-8C3D-289CA5434FFD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Details.Library", "Brimborium.Details.Library\Brimborium.Details.Library.csproj", "{FB05F0E4-0348-4EBF-8524-264CAB4A0275}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Brimborium.Details.Library.Tests", "Brimborium.Details.Library.Tests\Brimborium.Details.Library.Tests.csproj", "{4CA6E52F-CE34-41A2-8B3A-8519097523A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{31F1CB33-F9DA-4569-9E63-F89362091B03}"
+	ProjectSection(SolutionItems) = preProject
+		details.json = details.json
+		readme.md = readme.md
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{6BC74486-A175-4C80-95DD-B53C0C46D60A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BC74486-A175-4C80-95DD-B53C0C46D60A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BC74486-A175-4C80-95DD-B53C0C46D60A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BC74486-A175-4C80-95DD-B53C0C46D60A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7243C967-CF10-452E-9FF7-B187CDC6D424}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7243C967-CF10-452E-9FF7-B187CDC6D424}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7243C967-CF10-452E-9FF7-B187CDC6D424}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7243C967-CF10-452E-9FF7-B187CDC6D424}.Release|Any CPU.Build.0 = Release|Any CPU
+		{948990EC-00A6-466A-8C3D-289CA5434FFD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{948990EC-00A6-466A-8C3D-289CA5434FFD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{948990EC-00A6-466A-8C3D-289CA5434FFD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{948990EC-00A6-466A-8C3D-289CA5434FFD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB05F0E4-0348-4EBF-8524-264CAB4A0275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB05F0E4-0348-4EBF-8524-264CAB4A0275}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB05F0E4-0348-4EBF-8524-264CAB4A0275}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB05F0E4-0348-4EBF-8524-264CAB4A0275}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4CA6E52F-CE34-41A2-8B3A-8519097523A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CA6E52F-CE34-41A2-8B3A-8519097523A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CA6E52F-CE34-41A2-8B3A-8519097523A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CA6E52F-CE34-41A2-8B3A-8519097523A1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D6D5F68D-C6AD-4890-8C69-C5ED66662093}
+	EndGlobalSection
+EndGlobal
