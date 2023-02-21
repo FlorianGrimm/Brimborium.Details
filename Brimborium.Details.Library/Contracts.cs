@@ -52,7 +52,7 @@ public record SolutionInfo(
 
         var detailsRoot = string.IsNullOrEmpty(this.DetailsRoot)
             ? detailJsonDirectoryPath
-            : System.IO.Path.Combine(detailJsonDirectoryPath, this.DetailsRoot)
+            : System.IO.Path.GetFullPath(System.IO.Path.Combine(detailJsonDirectoryPath, this.DetailsRoot))
             ?? throw new InvalidOperationException();
         System.Console.Out.WriteLine($"DetailsRoot: {DetailsRoot}");
 
@@ -61,6 +61,18 @@ public record SolutionInfo(
         var result = thisRooted with {
             SolutionFile = thisRooted.GetFullPath(thisRooted.SolutionFile),
             DetailsFolder = thisRooted.GetFullPath(thisRooted.DetailsFolder),
+            ListMainProjectInfo = thisRooted.ListMainProjectInfo.Select(item => {
+                return item with {
+                    FilePath = thisRooted.GetFullPath(item.FilePath),
+                    FolderPath = thisRooted.GetFullPath(item.FolderPath),
+                };
+            }).ToList(),
+            ListProject = thisRooted.ListProject.Select(item => {
+                return item with {
+                    FilePath = thisRooted.GetFullPath(item.FilePath),
+                    FolderPath = thisRooted.GetFullPath(item.FolderPath),
+                };
+            }).ToList()
         };
         return result;
     }
@@ -109,12 +121,11 @@ public record MatchInfo(
     bool IsCommand,
     string[] Parts
 ) {
-    protected virtual bool PrintMembers(StringBuilder stringBuilder)
-    {
+    protected virtual bool PrintMembers(StringBuilder stringBuilder) {
         stringBuilder.Append($"MatchingText = \"{MatchingText}\", IsCommand = {IsCommand}, ");
         stringBuilder.Append("Parts = [");
-        for(int idx=0;idx<Parts.Length;idx++){
-            if (idx>0) {
+        for (int idx = 0; idx < Parts.Length; idx++) {
+            if (idx > 0) {
                 stringBuilder.Append(", ");
             }
             stringBuilder.Append("\"").Append(Parts[idx]).Append("\"");

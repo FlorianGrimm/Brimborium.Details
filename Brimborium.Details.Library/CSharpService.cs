@@ -1,14 +1,18 @@
 namespace Brimborium.Details;
 
+[Brimborium.Registrator.Singleton]
 public class CSharpService {
+    private static Regex regexSimple = new System.Text.RegularExpressions.Regex("//[ \t]*§([^\\r\\n]+)");
+
     public readonly SolutionInfo SolutionInfo;
+    private readonly Dictionary<ProjectId, List<SourceCodeMatch>> _SourceCodeMatchByProject;
+
     public CSharpService(SolutionInfo solutionInfo) {
         this.SolutionInfo = solutionInfo;
+        this._SourceCodeMatchByProject = new Dictionary<ProjectId, List<SourceCodeMatch>>();
     }
 
     public async Task ParseCSharp(CancellationToken cancellationToken) {
-        var r = new System.Text.RegularExpressions.Regex("//[ \t]*§([^\\r\\n]+)");
-
         string solutionFile = SolutionInfo.SolutionFile;
         Console.WriteLine($"Loading solution '{solutionFile}'");
         Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
@@ -37,10 +41,17 @@ public class CSharpService {
                 queue.Enqueue(project);
             }
         }
+        if (lstMainProject.Count == 0) {
+            foreach (var project in solution.Projects.Where(project => project.Language == "C#")) {
+                lstMainProject.Add(project);
+                queue.Enqueue(project);
+            }
+        } 
 
         // TODO: make configurable
         //var filterPath = System.IO.Path.Combine(SolutionInfo.DetailsRoot, "src");
         var filterPath = SolutionInfo.DetailsRoot;
+        System.Console.Out.WriteLine($"INFO: filterPath {filterPath}");
 
         var projectDependencyGraph = solution.GetProjectDependencyGraph();
         var lstRelevantProject = new List<Microsoft.CodeAnalysis.Project>();
@@ -74,6 +85,23 @@ public class CSharpService {
         lstRelevantProject.Sort((a, b) => StringComparer.InvariantCulture.Compare(a.Name, b.Name));
 
         var lstCompilingProjects = new List<Microsoft.CodeAnalysis.Project>();
+        await System.Threading.Tasks.Parallel.ForEachAsync(
+            lstRelevantProject,
+            cancellationToken,
+            async (project, cancellationToken) => {
+                var compilation = await project.GetCompilationAsync();
+                if (compilation is null) {
+                    System.Console.Out.WriteLine($"INFO: Compiles: {project.Name} - {project.Id} compilation is null");
+                } else {
+                    System.Console.Out.WriteLine($"INFO: Compiles: {project.Name} - {project.Id} - OK");
+                    lock (lstCompilingProjects) {
+                        lstCompilingProjects.Add(project);
+                    }
+                }
+            }
+        );
+
+#if false
         foreach (var project in lstRelevantProject) {
             var compilation = await project.GetCompilationAsync();
             if (compilation is null) {
@@ -123,108 +151,25 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                 */
             }
         }
+#endif
 
-        var lstSourceCodeMatch = new List<SourceCodeMatch>();
+
         foreach (var project in lstCompilingProjects) {
             var compilation = await project.GetCompilationAsync();
             if (compilation is null) {
                 System.Console.Error.WriteLine($"ERROR: compilation is null");
                 continue;
             }
-            foreach (var document in project.Documents) {
-                var documentFilePath = document.FilePath;
-                if (documentFilePath is null) { continue; }
-
-                var sourceText = await document.GetTextAsync();
-                if (sourceText is null) {
-                    System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} sourceCode is null");
-                } else {
-                    var sourceCode = sourceText.ToString();
-                    if (sourceCode.Contains('§')) {
-                        foreach (System.Text.RegularExpressions.Match match in r.Matches(sourceCode)) {
-                            var sourceCodeMatch = new SourceCodeMatch(
-                                FilePath: SolutionInfo.GetRelativePath(documentFilePath),
-                                Index: match.Index,
-                                Line: 0,
-                                Match: MatchUtility.parseMatch(match.Value)
-                            );
-                            var syntaxTree = await document.GetSyntaxTreeAsync();
-                            if (syntaxTree is null) {
-                                System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxTree is null");
-                                lstSourceCodeMatch.Add(sourceCodeMatch);
-                                continue;
-                            }
-
-                            var location = syntaxTree.GetLocation(
-                                new Microsoft.CodeAnalysis.Text.TextSpan(
-                                    sourceCodeMatch.Index,
-                                    sourceCodeMatch.Match.MatchingText.Length));
-                            var lineSpan = syntaxTree.GetLineSpan(new Microsoft.CodeAnalysis.Text.TextSpan(
-                                    sourceCodeMatch.Index,
-                                    sourceCodeMatch.Match.MatchingText.Length));
-                            var line = lineSpan.StartLinePosition.Line;
-                            sourceCodeMatch = sourceCodeMatch with { Line = line };
-                            var syntaxToken = syntaxTree.GetRoot().FindToken(sourceCodeMatch.Index, true);
-                            var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                            var syntaxNode = syntaxTree.GetRoot().FindNode(syntaxToken.GetLocation().SourceSpan);
-                            if (syntaxNode is null) {
-                                System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxNode is null");
-                                lstSourceCodeMatch.Add(sourceCodeMatch);
-                                continue;
-                            }
-                            ISymbol? symbol = null;
-                            symbol = WalkParentUntilDeclaredSymbol(semanticModel, syntaxNode, symbol);
-
-                            if (symbol is null) {
-                                System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} symbol is null");
-                                lstSourceCodeMatch.Add(sourceCodeMatch);
-                                continue;
-                            }
-
-                            var (methodSymbol, fullName, methodName, typeName, namespaceName) = GetNamesToSymbol(symbol);
-
-                            // if (lstSymbol.Count == 0) {
-                            //     System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} lstSymbol is empty");
-                            //     lstSourceCodeMatch.Add(sourceCodeMatch);
-                            //     continue;
-                            // }
-                            if (fullName is null) {
-                                System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} fullName is null");
-                                lstSourceCodeMatch.Add(sourceCodeMatch);
-                                continue;
-                            }
-
-                            var csContext = new SourceCodeMatchCSContext(
-                                    FilePath: sourceCodeMatch.FilePath,
-                                    Line: sourceCodeMatch.Line,
-                                    FullName: fullName,
-                                    Namespace: namespaceName,
-                                    Type: typeName,
-                                    Method: methodName);
-                            sourceCodeMatch = sourceCodeMatch with {
-                                CSContext = csContext
-                            };
-                            lstSourceCodeMatch.Add(sourceCodeMatch);
-
-                            if (methodSymbol is not null) {
-                                var lstSymbolCallerInfo = await SymbolFinder.FindCallersAsync(methodSymbol, solution, CancellationToken.None);
-                                System.Console.Out.WriteLine(sourceCodeMatch);
-                                foreach (var symbolCallerInfo in lstSymbolCallerInfo) {
-                                    var callingTypeFQN = symbolCallerInfo.CallingSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                                    var callingNameFQN = symbolCallerInfo.CallingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                                    var callingFQN = $"{callingTypeFQN}.{callingNameFQN}";
-                                    var calledTypeFQN = symbolCallerInfo.CalledSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                                    var calledNameFQN = symbolCallerInfo.CalledSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                                    var calledFQN = $"{calledTypeFQN}.{calledNameFQN}";
-                                    var isDirect = symbolCallerInfo.IsDirect ? "direct" : "indirect";
-                                    System.Console.Out.WriteLine($"{callingFQN} - {calledFQN} - {isDirect}");
-                                }
-                                System.Console.Out.WriteLine("");
-                                continue;
-                            }
-                        }
-                    }
+            var lstSourceCodeMatch = new List<SourceCodeMatch>();
+            await System.Threading.Tasks.Parallel.ForEachAsync(
+                project.Documents,
+                cancellationToken,
+                async (document, cancellationToken) => {
+                    await parseDocument(solution, compilation, document, lstSourceCodeMatch);
                 }
+            );
+            lock (this._SourceCodeMatchByProject) {
+                this._SourceCodeMatchByProject[project.Id] = lstSourceCodeMatch;
             }
         }
 
@@ -233,15 +178,18 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
         //         System.Console.Out.WriteLine($"{document.Name} - {document.FilePath}");
         //     }
         // }
-        System.Console.Out.WriteLine("found matches:");
-        foreach (var sourceCodeMatch in lstSourceCodeMatch) {
-            // if(sourceCodeMatch is SourceCodeMatchCS sourceCodeMatchCS){
-            //     System.Console.Out.WriteLine($"{sourceCodeMatch.RelativePath} - {sourceCodeMatch.Line} - {sourceCodeMatch.MatchingText}");
-            //     System.Console.Out.WriteLine($"  {sourceCodeMatchCS.Namespace} - {sourceCodeMatchCS.Type} - {sourceCodeMatchCS.Method}");
-            // } else {
-            //     System.Console.Out.WriteLine($"{sourceCodeMatch.RelativePath} - {sourceCodeMatch.Line} - {sourceCodeMatch.MatchingText}");
-            // }
-            System.Console.Out.WriteLine(sourceCodeMatch.ToString());
+        {
+            System.Console.Out.WriteLine("found matches:");
+            var lstSourceCodeMatch = this._SourceCodeMatchByProject.Values.SelectMany(item => item).ToList();
+            foreach (var sourceCodeMatch in lstSourceCodeMatch) {
+                // if(sourceCodeMatch is SourceCodeMatchCS sourceCodeMatchCS){
+                //     System.Console.Out.WriteLine($"{sourceCodeMatch.RelativePath} - {sourceCodeMatch.Line} - {sourceCodeMatch.MatchingText}");
+                //     System.Console.Out.WriteLine($"  {sourceCodeMatchCS.Namespace} - {sourceCodeMatchCS.Type} - {sourceCodeMatchCS.Method}");
+                // } else {
+                //     System.Console.Out.WriteLine($"{sourceCodeMatch.RelativePath} - {sourceCodeMatch.Line} - {sourceCodeMatch.MatchingText}");
+                // }
+                System.Console.Out.WriteLine(sourceCodeMatch.ToString());
+            }
         }
 #if false
         foreach (var project in lstCompilingProjects) {
@@ -288,6 +236,106 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             }
         }
 #endif
+    }
+
+    private async Task parseDocument(
+        Solution solution,
+        Compilation compilation,
+        Document document,
+        List<SourceCodeMatch> lstSourceCodeMatch) {
+        var documentFilePath = document.FilePath;
+        if (documentFilePath is null) { return; }
+
+        var sourceText = await document.GetTextAsync();
+        if (sourceText is null) {
+            System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} sourceCode is null");
+        } else {
+            var sourceCode = sourceText.ToString();
+            if (sourceCode.Contains('§')) {
+                foreach (System.Text.RegularExpressions.Match match in regexSimple.Matches(sourceCode)) {
+                    var sourceCodeMatch = new SourceCodeMatch(
+                        FilePath: SolutionInfo.GetRelativePath(documentFilePath),
+                        Index: match.Index,
+                        Line: 0,
+                        Match: MatchUtility.parseMatch(match.Value)
+                    );
+                    var syntaxTree = await document.GetSyntaxTreeAsync();
+                    if (syntaxTree is null) {
+                        System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxTree is null");
+                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        continue;
+                    }
+
+                    var location = syntaxTree.GetLocation(
+                        new Microsoft.CodeAnalysis.Text.TextSpan(
+                            sourceCodeMatch.Index,
+                            sourceCodeMatch.Match.MatchingText.Length));
+                    var lineSpan = syntaxTree.GetLineSpan(new Microsoft.CodeAnalysis.Text.TextSpan(
+                            sourceCodeMatch.Index,
+                            sourceCodeMatch.Match.MatchingText.Length));
+                    var line = lineSpan.StartLinePosition.Line;
+                    sourceCodeMatch = sourceCodeMatch with { Line = line };
+                    var syntaxToken = syntaxTree.GetRoot().FindToken(sourceCodeMatch.Index, true);
+                    var semanticModel = compilation.GetSemanticModel(syntaxTree);
+                    var syntaxNode = syntaxTree.GetRoot().FindNode(syntaxToken.GetLocation().SourceSpan);
+                    if (syntaxNode is null) {
+                        System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxNode is null");
+                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        continue;
+                    }
+                    ISymbol? symbol = null;
+                    symbol = WalkParentUntilDeclaredSymbol(semanticModel, syntaxNode, symbol);
+
+                    if (symbol is null) {
+                        System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} symbol is null");
+                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        continue;
+                    }
+
+                    var (methodSymbol, fullName, methodName, typeName, namespaceName) = GetNamesToSymbol(symbol);
+
+                    // if (lstSymbol.Count == 0) {
+                    //     System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} lstSymbol is empty");
+                    //     lstSourceCodeMatch.Add(sourceCodeMatch);
+                    //     continue;
+                    // }
+                    if (fullName is null) {
+                        System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} fullName is null");
+                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        continue;
+                    }
+
+                    var csContext = new SourceCodeMatchCSContext(
+                            FilePath: sourceCodeMatch.FilePath,
+                            Line: sourceCodeMatch.Line,
+                            FullName: fullName,
+                            Namespace: namespaceName,
+                            Type: typeName,
+                            Method: methodName);
+                    sourceCodeMatch = sourceCodeMatch with {
+                        CSContext = csContext
+                    };
+                    lstSourceCodeMatch.Add(sourceCodeMatch);
+
+                    if (methodSymbol is not null) {
+                        var lstSymbolCallerInfo = await SymbolFinder.FindCallersAsync(methodSymbol, solution, CancellationToken.None);
+                        System.Console.Out.WriteLine(sourceCodeMatch);
+                        foreach (var symbolCallerInfo in lstSymbolCallerInfo) {
+                            var callingTypeFQN = symbolCallerInfo.CallingSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                            var callingNameFQN = symbolCallerInfo.CallingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                            var callingFQN = $"{callingTypeFQN}.{callingNameFQN}";
+                            var calledTypeFQN = symbolCallerInfo.CalledSymbol.ContainingType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                            var calledNameFQN = symbolCallerInfo.CalledSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                            var calledFQN = $"{calledTypeFQN}.{calledNameFQN}";
+                            var isDirect = symbolCallerInfo.IsDirect ? "direct" : "indirect";
+                            System.Console.Out.WriteLine($"{callingFQN} - {calledFQN} - {isDirect}");
+                        }
+                        System.Console.Out.WriteLine("");
+                        continue;
+                    }
+                }
+            }
+        }
     }
 
     public static (IMethodSymbol? methodSymbol, string? fullName, string? methodName, string? typeName, string? namespaceName) GetNamesToSymbol(ISymbol? symbol) {

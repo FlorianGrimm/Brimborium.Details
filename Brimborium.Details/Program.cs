@@ -45,12 +45,12 @@ public static class Program {
             e.Cancel = true;
         };
 
-        await host.Services.GetRequiredService<MarkdownService>().ParseDetail(ctsMain.Token);
-        // await host.Services.GetRequiredService<CSharpService>().ParseCSharp(ctsMain.Token);
-        // await host.Services.GetRequiredService<TypeScriptService>().ParseTypeScript(ctsMain.Token);
-
+        var t1= host.Services.GetRequiredService<MarkdownService>().ParseDetail(ctsMain.Token);
+        // § todo.md
+        var t2 = host.Services.GetRequiredService<CSharpService>().ParseCSharp(ctsMain.Token);
+        var t3 = host.Services.GetRequiredService<TypeScriptService>().ParseTypeScript(ctsMain.Token);
+        await Task.WhenAll(t1, t2, t3);
         //await host.Services.GetRequiredService<MarkdownService>().WriteDetail(ctsMain.Token);
-
 
         if (appSettings.Watch) {
             host.Services.GetRequiredService<WatchService>().Start(ctsMain.Token);
@@ -76,9 +76,18 @@ public static class Program {
         AppSettings appSettings) {
         appSettings.Configure(configuration);
         if (!string.IsNullOrEmpty(appSettings.DetailsConfiguration)) {
+            if (!System.IO.File.Exists(appSettings.DetailsConfiguration)) {
+                throw new Exception($"File not found: {appSettings.DetailsConfiguration}");
+            }
+            var detailsConfiguration = appSettings.DetailsConfiguration;
             configurationBuilder.AddJsonFile(appSettings.DetailsConfiguration, optional: false, reloadOnChange: true);
             configuration = configurationBuilder.Build();
             configuration.Bind(appSettings);
+            appSettings.DetailsConfiguration = detailsConfiguration;
+            appSettings.DetailsRoot = System.IO.Path.GetFullPath(
+                System.IO.Path.Combine(
+                    System.IO.Path.GetDirectoryName(detailsConfiguration) ?? throw new Exception("GetDirectoryName is null"),
+                    appSettings.DetailsRoot));
         }
     }
 }

@@ -1,12 +1,12 @@
 namespace Brimborium.Details;
 
-public static class SolutionInfoUtility{
+public static class SolutionInfoUtility {
     public static SolutionInfo LoadSolutionInfo(
         IConfiguration configuration
         ) {
         var solutionInfoConfiguration = new SolutionInfoConfiguration();
         configuration.Bind(solutionInfoConfiguration);
-
+        
         var solutionInfo = new SolutionInfo(
             solutionInfoConfiguration.DetailsRoot ?? "",
             solutionInfoConfiguration.SolutionFile ?? "",

@@ -13,16 +13,17 @@ public static class MatchUtility {
         }
         return parseMatch(value);
     }
-    
+
     public static MatchInfo parseMatch(string value) {
-        // § Syntax Marker
+        // § Syntax-Marker.md / Syntax Marker
+        // [Syntax Marker](details://Syntax-Marker.md/Syntax Marker)
         var arr = value.Split(arrCharParagraph);
         arr = arr.Select(
             item => item
                 .Trim())
-                .Where((item, idx)=>(idx==0)?(!string.IsNullOrEmpty(item)):true)
-                .ToArray();        
-        bool isCommand = false;        
+                .Where((item, idx) => (idx == 0) ? (!string.IsNullOrEmpty(item)) : true)
+                .ToArray();
+        bool isCommand = false;
         if (arr.Length > 0) {
             if (arr[0].StartsWith(">")) {
                 arr[0] = arr[0].Substring(1).Trim();

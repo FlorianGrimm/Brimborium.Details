@@ -7,6 +7,7 @@ public class AppSettings {
     public bool Watch { get; set; }
 
     public void Configure(IConfiguration configuration) {
+#if false
         if (string.IsNullOrEmpty(this.DetailsConfiguration)) {
             var lstDetailsJsonFileName = System.IO.Directory.EnumerateFiles(
                 System.Environment.CurrentDirectory,
@@ -56,6 +57,7 @@ public class AppSettings {
                 this.DetailsRoot = System.Environment.CurrentDirectory;
             }
         }
+#endif
         if (!string.IsNullOrEmpty(this.DetailsConfiguration)) {
             if (string.IsNullOrEmpty(this.DetailsRoot)) {
                 this.DetailsConfiguration = System.IO.Path.GetFullPath(this.DetailsConfiguration);
@@ -65,6 +67,13 @@ public class AppSettings {
                 this.DetailsConfiguration = System.IO.Path.GetFullPath(
                     System.IO.Path.Combine(this.DetailsRoot, this.DetailsConfiguration));
             }
+        } else {
+            if (string.IsNullOrEmpty(this.DetailsRoot)) {
+                this.DetailsRoot = System.Environment.CurrentDirectory;
+            } else {
+                this.DetailsRoot = System.IO.Path.GetFullPath(this.DetailsRoot);
+            }
+            this.DetailsConfiguration = System.IO.Path.Combine(this.DetailsRoot, "details.json");
         }
     }
 
