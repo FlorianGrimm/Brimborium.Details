@@ -1,5 +1,6 @@
 global using global::System;
 global using global::System.Collections.Generic;
+global using global::System.Collections.Concurrent;
 global using global::System.IO;
 global using global::System.Linq;
 global using global::System.Net.Http;
@@ -21,6 +22,7 @@ global using global::Markdig.Syntax.Inlines;
 global using global::Microsoft.Extensions.Configuration;
 global using global::Microsoft.Extensions.DependencyInjection;
 global using global::Microsoft.Extensions.Options;
+global using global::Microsoft.Extensions.ObjectPool;
 
 global using global::Microsoft.CodeAnalysis.MSBuild;
 global using global::Microsoft.CodeAnalysis.CSharp;

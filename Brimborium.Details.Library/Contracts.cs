@@ -143,3 +143,25 @@ public record SourceCodeMatchCSContext(
     string? Type,
     string? Method
 );
+
+
+public interface IFileChangeReceiver {
+    List<GlobPattern> GetGlobPattern();
+    Task OnFileChangedAsync(string filePath, CancellationToken cancellationToken);
+}
+
+public record GlobPattern(
+    string Extension,
+    string RelativePath,
+    Regex? Include,
+    Regex? Exclude,
+    Func<string, bool>? IsMatch
+);
+
+public interface ISolutionAnalyzer {
+    Task AnalyzeAsync(SolutionInfo solutionInfo, CancellationToken cancellationToken);
+}
+
+public interface IProjectAnalyzer {
+    Task AnalyzeAsync(SolutionInfo solutionInfo, ProjectInfo projectInfo, CancellationToken cancellationToken);
+}

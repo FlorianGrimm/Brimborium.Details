@@ -1,5 +1,5 @@
 ﻿namespace Brimborium.Details;
-
+// TODO https://github.com/mrlacey/CommentLinks
 public static class Program {
     public static async Task Main(string[] args) {
         System.Console.Out.WriteLine("Brimborium.Details");
