@@ -12,13 +12,15 @@ public class CSharpService {
         this._SourceCodeMatchByProject = new Dictionary<ProjectId, List<SourceCodeMatch>>();
     }
 
-    public async Task ParseCSharp(CancellationToken cancellationToken) {
-        string solutionFile = SolutionInfo.SolutionFile;
+    public async Task ParseCSharp(
+        DetailContext detailContext,
+        CancellationToken cancellationToken) {
+        var solutionFile = SolutionInfo.SolutionFile;
         Console.WriteLine($"Loading solution '{solutionFile}'");
         Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
         using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += (sender, args) => Console.WriteLine(args.Diagnostic.Message);
-        var solution = await workspace.OpenSolutionAsync(solutionFile);
+        var solution = await workspace.OpenSolutionAsync(solutionFile.AbsolutePath);
 
         /*
         foreach (var project in solution.Projects) {
@@ -50,7 +52,7 @@ public class CSharpService {
 
         // TODO: make configurable
         //var filterPath = System.IO.Path.Combine(SolutionInfo.DetailsRoot, "src");
-        var filterPath = SolutionInfo.DetailsRoot;
+        var filterPath = SolutionInfo.DetailsRoot.AbsolutePath;
         System.Console.Out.WriteLine($"INFO: filterPath {filterPath}");
 
         var projectDependencyGraph = solution.GetProjectDependencyGraph();
@@ -254,7 +256,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             if (sourceCode.Contains('§')) {
                 foreach (System.Text.RegularExpressions.Match match in regexSimple.Matches(sourceCode)) {
                     var sourceCodeMatch = new SourceCodeMatch(
-                        FilePath: SolutionInfo.GetRelativePath(documentFilePath),
+                        FilePath: this.SolutionInfo.DetailsRoot.Create(documentFilePath),
                         Index: match.Index,
                         Line: 0,
                         Match: MatchUtility.parseMatch(match.Value)
@@ -380,6 +382,14 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             symbol = Microsoft.CodeAnalysis.ModelExtensions.GetDeclaredSymbol(semanticModel, sn, default);
         }
         return symbol;
+    }
+
+    public async Task WriteDetail(
+        DetailContext detailContext,
+        CancellationToken cancellationToken) {
+        // $ todo.md
+        Console.WriteLine($"DetailPath {SolutionInfo.DetailsFolder}");
+        await Task.CompletedTask;
     }
 
     /*

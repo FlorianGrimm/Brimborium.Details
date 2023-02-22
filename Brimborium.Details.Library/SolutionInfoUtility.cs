@@ -1,23 +1,25 @@
 namespace Brimborium.Details;
 
 public static class SolutionInfoUtility {
-    public static SolutionInfo LoadSolutionInfo(
+    public static SolutionInfoPersitence LoadSolutionInfo(
         IConfiguration configuration
         ) {
         var solutionInfoConfiguration = new SolutionInfoConfiguration();
         configuration.Bind(solutionInfoConfiguration);
-        
-        var solutionInfo = new SolutionInfo(
+        var solutionInfo = new SolutionInfoPersitence(
             solutionInfoConfiguration.DetailsRoot ?? "",
             solutionInfoConfiguration.SolutionFile ?? "",
             solutionInfoConfiguration.DetailsFolder ?? ""
         );
-        solutionInfo.ListMainProjectName.AddRange(solutionInfoConfiguration.ListMainProjectName);
+        solutionInfo.ListMainProjectName.AddRange(
+            solutionInfoConfiguration.ListMainProjectName
+            );
         solutionInfo.ListMainProjectInfo.AddRange(solutionInfoConfiguration.ListMainProjectInfo);
         solutionInfo.ListProject.AddRange(solutionInfoConfiguration.ListProject);
         return solutionInfo;
     }
 
+#if false
     public static async Task<SolutionInfo> ReadSolutionInfo(
         string detailJsonPath
     ) {
@@ -33,7 +35,7 @@ public static class SolutionInfoUtility {
                 ?? throw new InvalidOperationException());
         return result;
     }
-
+#endif
     public static async Task WriteSolutionInfo(string detailJsonPath, SolutionInfo solutionInfo) {
         var detailJsonFullPath = System.IO.Path.GetFullPath(detailJsonPath);
         var externalSolutionInfo = solutionInfo.PreSave(detailJsonFullPath);

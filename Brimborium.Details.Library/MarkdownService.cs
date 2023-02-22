@@ -3,21 +3,30 @@ namespace Brimborium.Details;
 [Brimborium.Registrator.Singleton]
 public class MarkdownService {
     public readonly SolutionInfo SolutionInfo;
+    private readonly IFileSystem _FileSystem;
     private readonly MarkdownPipeline _Pipeline;
 
-    public MarkdownService(SolutionInfo solutionInfo) {
+    public MarkdownService(
+        SolutionInfo solutionInfo,
+        IFileSystem fileSystem
+        ) {
         this.SolutionInfo = solutionInfo;
-
+        this._FileSystem = fileSystem;
         this._Pipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .EnableTrackTrivia()
             .Build();
     }
 
-    public async Task ParseDetail(CancellationToken cancellationToken) {
+    public async Task ParseDetail(
+        DetailContext detailContext,
+        CancellationToken cancellationToken) {
         // System.Console.Out.WriteLine($"DetailsFolder: {SolutionInfo.DetailsFolder}");
 
-        var lstMarkdownFile = Directory.EnumerateFiles(this.SolutionInfo.DetailsFolder, "*.md", SearchOption.AllDirectories);
+        var lstMarkdownFile = this._FileSystem.EnumerateFiles(
+                this.SolutionInfo.DetailsFolder, 
+                "*.md", 
+                SearchOption.AllDirectories);
         if (lstMarkdownFile is null || !lstMarkdownFile.Any()){
             System.Console.Out.WriteLine($"DetailsFolder: {SolutionInfo.DetailsFolder} contains no *.md files");
             return;
@@ -27,9 +36,10 @@ public class MarkdownService {
         }
     }
 
-    public async Task ParseMarkdownFile(string markdownFile) {
+    public async Task ParseMarkdownFile(FileName markdownFile) {
         System.Console.Out.WriteLine($"markdownFile: {markdownFile}");
-        var markdownContent = await File.ReadAllTextAsync(markdownFile);
+        
+        var markdownContent = await this._FileSystem.ReadAllTextAsync(markdownFile, Encoding.UTF8);
         //MarkdownDocument document = MarkdownParser.Parse(markdownContent);
         MarkdownDocument document = Markdown.Parse(markdownContent, this._Pipeline);
         List<string> listHeadings = new List<string>();
@@ -117,7 +127,10 @@ public class MarkdownService {
         return sb?.ToString() ?? "";
     }
 
-    public async Task WriteDetail(CancellationToken cancellationToken) {
+    public async Task WriteDetail(
+        DetailContext detailContext,
+        CancellationToken cancellationToken) {
+        // $ todo.md
         Console.WriteLine($"DetailPath {SolutionInfo.DetailsFolder}");
         await Task.CompletedTask;
     }

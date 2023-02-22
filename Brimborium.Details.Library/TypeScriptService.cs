@@ -14,14 +14,21 @@ public class TypeScriptService {
     https://basarat.gitbooks.io/typescript/content/docs/compiler/checker.html
     */
     public readonly SolutionInfo SolutionInfo;
+    private readonly IFileSystem _FileSystem;
     private readonly Dictionary<ProjectInfo, List<SourceCodeMatch>> _SourceCodeMatchByProject;
 
-    public TypeScriptService(SolutionInfo solutionInfo) {
+    public TypeScriptService(
+        SolutionInfo solutionInfo,
+        IFileSystem fileSystem
+        ) {
         this.SolutionInfo = solutionInfo;
+        this._FileSystem = fileSystem;
         this._SourceCodeMatchByProject = new Dictionary<ProjectInfo, List<SourceCodeMatch>>();
     }
 
-    public async Task ParseTypeScript(CancellationToken cancellationToken) {
+    public async Task ParseTypeScript(
+        DetailContext detailContext,
+        CancellationToken cancellationToken) {
         var lstTypeSciptProjectInfo = SolutionInfo.ListMainProjectInfo
             .Where(item => item.Language == "TypeScript")
             .ToList();
@@ -41,13 +48,13 @@ public class TypeScriptService {
         var lstMatchInfo = new List<SourceCodeMatch>();
 
         Console.WriteLine($"typescriptProject {typescriptProject.FolderPath}");
-        var lstTsFile = System.IO.Directory.EnumerateFiles(typescriptProject.FolderPath, "*.ts", System.IO.SearchOption.AllDirectories);
+        var lstTsFile = this._FileSystem.EnumerateFiles(typescriptProject.FolderPath, "*.ts", System.IO.SearchOption.AllDirectories);
         //var htmlFiles = System.IO.Directory.EnumerateFiles(typescriptProject.FolderPath, "*.html", System.IO.SearchOption.AllDirectories)
 
         foreach (var tsFile in lstTsFile) {
             // var fi = new System.IO.FileInfo(tsFile);
             // fi.LastWriteTimeUtc            
-            var content = await System.IO.File.ReadAllLinesAsync(tsFile);
+            var content = await this._FileSystem.ReadAllLinesAsync(tsFile, Encoding.UTF8, cancellationToken);
             for (var idx = 0; idx < content.Length; idx++) {
                 var line = content[idx];
                 if (line.Contains('§')) {
@@ -58,19 +65,15 @@ public class TypeScriptService {
                     var match = MatchUtility.parseMatchIfMatches(line);
                     if (match is not null) {
                         var sourceCodeMatch = new SourceCodeMatch(
-                                FilePath: this.getRelativePath(typescriptProject, tsFile),
+                                FilePath: tsFile,
                                 Index: 0,
                                 Line: idx + 1,
                                 Match: match
-                            );
+                            ); ;
                     }
                 }
             }
         }
         return lstMatchInfo;
-    }
-
-    private string getRelativePath(ProjectInfo typescriptProject, string tsFile) {
-        return System.IO.Path.GetRelativePath(typescriptProject.FolderPath, tsFile);
     }
 }

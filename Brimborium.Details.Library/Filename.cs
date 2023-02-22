@@ -1,11 +1,38 @@
 ﻿namespace Brimborium.Details;
 
-public class Filename:IEquatable<Filename> {
+public class FileName:IEquatable<FileName> {
     private string? _RelativePath;
-    private Filename? _RootFolder;
+    private FileName? _RootFolder;
     private string? _AbsolutePath;
 
-    public Filename() {
+    public FileName() {
+    }
+    public static FileName FromAbsolutePath(string absolutePath) {
+        return new FileName() {
+            AbsolutePath = absolutePath
+        };
+    }
+
+    public FileName Create(string path) {
+        if (System.IO.Path.IsPathFullyQualified(path)) {
+            return this.CreateWithAbsolutePath(path);
+        } else {
+            return this.CreateWithRelativePath(path);
+        }
+    }
+
+    public FileName CreateWithRelativePath(string relativePath) {
+        return new FileName() {
+            RootFolder = this,
+            RelativePath = relativePath.Replace('\\', '/')
+        };
+    }
+
+    public FileName CreateWithAbsolutePath(string absolutePath) {
+        return new FileName() {
+            RootFolder=this,
+            AbsolutePath = absolutePath
+        };
     }
 
     [System.Text.Json.Serialization.JsonInclude]
@@ -37,7 +64,7 @@ public class Filename:IEquatable<Filename> {
     }
 
     [System.Text.Json.Serialization.JsonIgnore]
-    public Filename? RootFolder {
+    public FileName? RootFolder {
         get {
             return this._RootFolder;
         }
@@ -89,10 +116,10 @@ public class Filename:IEquatable<Filename> {
 
     public override bool Equals(object? obj) {
         if (obj is null) { return false; }
-        return this.Equals(obj as Filename);
+        return this.Equals(obj as FileName);
     }
 
-    public bool Equals(Filename? other) {
+    public bool Equals(FileName? other) {
         if (other is null) { return false; }
         if (ReferenceEquals(this, other)) { return true; }
         if (this._RelativePath is not null && other._RelativePath is not null) {
@@ -121,13 +148,22 @@ public class Filename:IEquatable<Filename> {
             .GetHashCode();
     }
 
-    public Filename? Rebase(Filename otherbase) {
+    public FileName? Rebase(FileName nextbase) {
+        if (ReferenceEquals(this._RootFolder, nextbase)) {
+            return this;
+        }
+        if (this._RootFolder?.AbsolutePath is not null 
+            && nextbase._RootFolder?.AbsolutePath is not null
+            && string.Equals(this._RootFolder.AbsolutePath, nextbase._RootFolder.AbsolutePath, StringComparison.InvariantCultureIgnoreCase)
+            ) {
+            return this;
+        }
         var thisAbsolutePath = this.AbsolutePath;
         if (thisAbsolutePath is null) { return null; }
 
-        var otherAbsolutePath = otherbase.AbsolutePath;
+        var otherAbsolutePath = nextbase.AbsolutePath;
         if (otherAbsolutePath is null) { return null; }
 
-        return new Filename() { RootFolder = otherbase, AbsolutePath = this.AbsolutePath };
+        return new FileName() { RootFolder = nextbase, AbsolutePath = this.AbsolutePath };
     }
 }

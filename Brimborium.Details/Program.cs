@@ -35,33 +35,32 @@ public static class Program {
                 });
         });
         using IHost host = hostBuilder.Build();
-        if (host.Services.GetService<SolutionInfo>() is null) { return; }
-
+        var solutionInfo = host.Services.GetService<SolutionInfo>();
+        if (solutionInfo is null) { return; }
+        //host.WaitForShutdown
         var ctsMain = new CancellationTokenSource();
         await host.StartAsync(ctsMain.Token);
 
         System.Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e) {
-            ctsMain.Cancel();
             e.Cancel = true;
-        };
+            ctsMain.Cancel();
 
-        var t1= host.Services.GetRequiredService<MarkdownService>().ParseDetail(ctsMain.Token);
-        // § todo.md
-        var t2 = host.Services.GetRequiredService<CSharpService>().ParseCSharp(ctsMain.Token);
-        var t3 = host.Services.GetRequiredService<TypeScriptService>().ParseTypeScript(ctsMain.Token);
-        await Task.WhenAll(t1, t2, t3);
-        //await host.Services.GetRequiredService<MarkdownService>().WriteDetail(ctsMain.Token);
+            IHostApplicationLifetime applicationLifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
+            applicationLifetime.StopApplication();
+        };
+        if (appSettings.Watch) {
+            await host.Services.GetRequiredService<WatchService>().Initialize(solutionInfo, ctsMain.Token);
+        }
+        await host.Services.GetRequiredService<ISolutionAnalyzer>().AnalyzeAsync(solutionInfo, ctsMain.Token);
 
         if (appSettings.Watch) {
             host.Services.GetRequiredService<WatchService>().Start(ctsMain.Token);
             System.Console.Out.WriteLine("Watching");
-            await Task.Delay(-1, ctsMain.Token);
-        } else {
-            //ctsMain.Cancel();
+            //await Task.Delay(-1, ctsMain.Token);
+            await host.WaitForShutdownAsync(ctsMain.Token);
         }
 
-        var ctsMainStop = new CancellationTokenSource();
-        await host.StopAsync(ctsMainStop.Token);
+        await host.StopAsync();
 
 #if false
         var extension = System.IO.Path.GetExtension(detailJsonPath);
