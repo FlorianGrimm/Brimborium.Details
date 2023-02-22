@@ -51,7 +51,12 @@ public class StringSplice {
     public string GetText() => this.AsSubString().ToString();
 
     public Range Range => _Range;
-    public int Length => this._Text.Length;
+    public int Length { 
+        get {
+            var (_, length) = this.Range.GetOffsetAndLength(this._Text.Length);
+            return length;
+        }
+    }
 
     public string? GetReplacementText() { return this._ReplacementText; }
 
@@ -293,7 +298,7 @@ public class StringSplice {
     }
 
     private string GetDebuggerDisplay() {
-        return this._Text.ToString();
+        return $"{this._Text}; Range:{this.Range}; #Part:{this._LstPart?.Count};";
     }
 }
 #if false

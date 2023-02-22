@@ -54,6 +54,27 @@ public class StringSpliceTests {
     }
 
     [Fact]
+    public void T006GetOrCreatePart() {
+        var sut = new StringSplice("Hello World");
+        var a = sut.GetOrCreatePart(4, 4);
+        Assert.NotNull(a);
+        Assert.Equal(4, a.Range.Start);
+        Assert.Equal(8, a.Range.End);
+        Assert.Equal(4, a.Length);
+
+        var b = sut.GetOrCreatePart(4, 4);
+        Assert.NotNull(b);
+        
+        Assert.Same(a, b);
+
+        var c = sut.GetOrCreatePart(4, 40);
+        Assert.Null(c);
+
+    }
+
+    
+
+    [Fact]
     public void T011BuildReplacement() {
         var sut = new StringSplice("Hello World");
         var part = sut.CreatePart(1, 1);

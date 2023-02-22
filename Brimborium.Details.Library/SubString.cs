@@ -1,5 +1,6 @@
 ﻿namespace Brimborium.Details;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public struct SubString {
     private readonly string _Text = String.Empty;
     private readonly Range _Range;
@@ -68,6 +69,14 @@ public struct SubString {
 
     public ReadOnlySpan<char> AsSpan() 
         => this._Text.AsSpan()[this.Range];
+
+    private string GetDebuggerDisplay() {
+        if (this._Text is null) { return "null"; }
+        if (this.Length < 32) {
+            return $"{this._Text.Substring(this.Start)}[{this.Range}]";
+        }
+        return  $"{this._Text.Substring(this.Start, 32)}...[{this.Range}]";
+    }
 }
 #if false
 public abstract class StringSpliceBase {
