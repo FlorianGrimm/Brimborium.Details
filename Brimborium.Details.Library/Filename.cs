@@ -88,12 +88,12 @@ public class Filename:IEquatable<Filename> {
     }
 
     public override bool Equals(object? obj) {
-        if (ReferenceEquals(obj, null)) { return false; }
+        if (obj is null) { return false; }
         return this.Equals(obj as Filename);
     }
 
     public bool Equals(Filename? other) {
-        if (ReferenceEquals(other, null)) { return false; }
+        if (other is null) { return false; }
         if (ReferenceEquals(this, other)) { return true; }
         if (this._RelativePath is not null && other._RelativePath is not null) {
             if (this._RootFolder is null) {
@@ -113,13 +113,12 @@ public class Filename:IEquatable<Filename> {
             }
             return StringComparer.InvariantCultureIgnoreCase.Equals(this._RelativePath, other._RelativePath);
         }
-        return false;
-
-        //return System.HashCode.Combine(this._RelativePath)
+        return StringComparer.InvariantCultureIgnoreCase.Equals(this._AbsolutePath, other._AbsolutePath);
     }
 
     public override int GetHashCode() {
-        return base.GetHashCode();
+        return (this._RelativePath ?? this._AbsolutePath ?? string.Empty)
+            .GetHashCode();
     }
 
     public Filename? Rebase(Filename otherbase) {

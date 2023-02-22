@@ -40,4 +40,8 @@
 		<PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\Brimborium.Details.Library\Brimborium.Details.Library.csproj" />
+	</ItemGroup>
+
 </Project>
