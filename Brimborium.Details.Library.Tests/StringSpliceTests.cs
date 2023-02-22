@@ -12,7 +12,7 @@ public class StringSpliceTests {
 
         Assert.Equal("2..4;8..9", string.Join(";", sut.GetArrayPart().Select(item => item.Range.ToString())));
     }
-     [Fact]
+    [Fact]
     public void T002CreatePartDown() {
         var sut = new StringSplice("Hello World");
 
@@ -54,11 +54,11 @@ public class StringSpliceTests {
     }
 
     [Fact]
-    public void T001BuildReplacement() {
+    public void T011BuildReplacement() {
         var sut = new StringSplice("Hello World");
         var part = sut.CreatePart(1, 1);
         if (part is null) { throw new Exception("part is null"); }
-        part.GetReplacementuilder().Append("a");
+        part.GetReplacementBuilder().Append("a");
         Assert.Equal("Hallo World", sut.BuildReplacement());
         var part2 = sut.CreatePart(sut.Length, 0);
         if (part2 is null) { throw new Exception("part2 is null"); }
@@ -66,4 +66,47 @@ public class StringSpliceTests {
         Assert.Equal("Hallo World!", sut.BuildReplacement());
     }
 
+    [Fact]
+    public void T012BuildReplacement() {
+        var sut = new StringSplice("123BC");
+        //var sutRange = new Range(1, new Index(1, true),
+        var part1 = sut.CreatePart(1..^1);
+        if (part1 is null) { throw new Exception("part is null"); }
+        Assert.Equal("23B", part1.GetText());
+
+        var part2 = part1.CreatePart(1, 1);
+        if (part2 is null) { throw new Exception("part2 is null"); }
+        part2.SetReplacementText("A");
+
+        Assert.Equal("2AB", part1.BuildReplacement());
+        Assert.Equal("12ABC", sut.BuildReplacement());
+    }
+
+    [Fact]
+    public void T013BuildReplacement() {
+        var sut = new StringSplice("123BC");
+
+        var part = new StringSplice(sut.AsSubString(), 1..^1);
+        if (part is null) { throw new Exception("part is null"); }
+        Assert.Equal("23B", part.GetText());
+
+        var part2 = part.CreatePart(1, 1);
+        if (part2 is null) { throw new Exception("part2 is null"); }
+        part2.SetReplacementText("A");
+
+        Assert.Equal("2AB", part.BuildReplacement());
+
+        Assert.Equal("123BC", sut.BuildReplacement());
+    }
+
+    [Fact]
+    public void T014BuildReplacement() {
+        var sut = new StringSplice("15");
+
+        sut.CreatePart(1, 0)?.SetReplacementText("2");
+        sut.CreatePart(1, 0)?.SetReplacementText("3");
+        sut.CreatePart(1, 0)?.SetReplacementText("4");
+
+        Assert.Equal("12345", sut.BuildReplacement());
+    }
 }

@@ -15,12 +15,13 @@ public class CSharpService {
     public async Task ParseCSharp(
         DetailContext detailContext,
         CancellationToken cancellationToken) {
-        var solutionFile = SolutionInfo.SolutionFile;
+        var solutionFile = SolutionInfo.SolutionFile.AbsolutePath;
+        if (solutionFile is null) { return; }
         Console.WriteLine($"Loading solution '{solutionFile}'");
         Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
         using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += (sender, args) => Console.WriteLine(args.Diagnostic.Message);
-        var solution = await workspace.OpenSolutionAsync(solutionFile.AbsolutePath);
+        var solution = await workspace.OpenSolutionAsync(solutionFile);
 
         /*
         foreach (var project in solution.Projects) {
@@ -52,7 +53,7 @@ public class CSharpService {
 
         // TODO: make configurable
         //var filterPath = System.IO.Path.Combine(SolutionInfo.DetailsRoot, "src");
-        var filterPath = SolutionInfo.DetailsRoot.AbsolutePath;
+        var filterPath = SolutionInfo.DetailsRoot.AbsolutePath ?? string.Empty;
         System.Console.Out.WriteLine($"INFO: filterPath {filterPath}");
 
         var projectDependencyGraph = solution.GetProjectDependencyGraph();

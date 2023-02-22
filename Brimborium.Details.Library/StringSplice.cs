@@ -1,11 +1,12 @@
 ﻿namespace Brimborium.Details;
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class StringSplice {
     private readonly SubString _Text;
     private readonly Range _Range;
     private List<StringSplice>? _LstPart;
-    private StringBuilder? _ReplacmentBuilder;
-    private string? _ReplacmentText;
+    private StringBuilder? _ReplacementBuilder;
+    private string? _ReplacementText;
 
     public StringSplice(string text) {
         this._Text = new SubString(text);
@@ -31,6 +32,7 @@ public class StringSplice {
     public StringSplice(
         SubString text,
         Range range) {
+        this._Text = text;
         if (range.Start.IsFromEnd || range.End.IsFromEnd) {
 
             var (rangeOffset, rangeLength) = range.GetOffsetAndLength(text.Length);
@@ -45,44 +47,44 @@ public class StringSplice {
         this._Range = range;
     }
 
-    public SubString GetSubStringWithRange() => this._Text.GetSubString(this.Range);
-    public string GetText() => this.GetSubStringWithRange().ToString();
+    public SubString AsSubString() => this._Text.GetSubString(this._Range);
+    public string GetText() => this.AsSubString().ToString();
 
     public Range Range => _Range;
     public int Length => this._Text.Length;
 
-    public string? GetReplacmentText() { return this._ReplacmentText; }
+    public string? GetReplacementText() { return this._ReplacementText; }
 
-    public void SetReplacmentText(string? value) {
-        if (this._ReplacmentBuilder is not null) {
+    public void SetReplacementText(string? value) {
+        if (this._ReplacementBuilder is not null) {
             throw new InvalidOperationException("Use only one of ReplacmentText and ReplacmentBuilder.");
         }
         if (this._LstPart is not null) {
             throw new InvalidOperationException("Use only one of ReplacmentText and Parts.");
         }
-        this._ReplacmentText = value;
+        this._ReplacementText = value;
     }
 
-    public void SetReplacmentBuilder(StringBuilder? value) {
-        if (this._ReplacmentText is not null) {
+    public void SetReplacementBuilder(StringBuilder? value) {
+        if (this._ReplacementText is not null) {
             throw new InvalidOperationException("Use only one of ReplacmentText and ReplacmentBuilder.");
         }
         if (this._LstPart is not null) {
             throw new InvalidOperationException("Use only one of ReplacmentBuilder and Parts.");
         }
 
-        this._ReplacmentBuilder = value;
+        this._ReplacementBuilder = value;
     }
 
-    public StringBuilder GetReplacmentBuilder() {
-        if (this._ReplacmentText is not null) {
+    public StringBuilder GetReplacementBuilder() {
+        if (this._ReplacementText is not null) {
             throw new InvalidOperationException("Use only one of ReplacmentText and ReplacmentBuilder.");
         }
         if (this._LstPart is not null) {
             throw new InvalidOperationException("Use only one of ReplacmentBuilder and Parts.");
         }
 
-        return this._ReplacmentBuilder ??= new StringBuilder();
+        return this._ReplacementBuilder ??= new StringBuilder();
     }
 
     public StringSplice[]? GetArrayPart() => this._LstPart?.ToArray();
@@ -100,15 +102,16 @@ public class StringSplice {
         if (this.Length < (start + length)) { return false; }
         return true;
     }
+
     public StringSplice? CreatePart(int start, int length) {
         if (!this.IsRangeValid(start, length)) {
             return null;
         }
         if (this._LstPart is null) {
-            if (this._ReplacmentText is not null) {
+            if (this._ReplacementText is not null) {
                 throw new InvalidOperationException("Use only one of ReplacmentText and Parts.");
             }
-            if (this._ReplacmentBuilder is not null) {
+            if (this._ReplacementBuilder is not null) {
                 throw new InvalidOperationException("Use only one of ReplacmentBuilder and Parts.");
             }
             this._LstPart = new List<StringSplice>();
@@ -127,12 +130,15 @@ public class StringSplice {
                             idx++;
                             continue;
                         } else {
-                            var result = this.Factory(start, length);
-                            if (result is not null) {
-                                this._LstPart.Insert(idx, result);
-                            }
-                            return result;
+                            break;
                         }
+                    }
+                    {
+                        var result = this.Factory(start, length);
+                        if (result is not null) {
+                            this._LstPart.Insert(idx+1, result);
+                        }
+                        return result;
                     }
                 }
                 return null;
@@ -158,15 +164,19 @@ public class StringSplice {
         }
     }
 
+    public StringSplice? CreatePart(Range range) {
+        var (offset, length) = range.GetOffsetAndLength(this._Text.Length);
+        return this.CreatePart(offset, length);
+    }
 
     public StringSplice? GetOrCreatePart(int start, int length) {
         if (!this.IsRangeValid(start, length)) { return null; }
 
         if (this._LstPart is null) {
-            if (this._ReplacmentText is not null) {
+            if (this._ReplacementText is not null) {
                 throw new InvalidOperationException("Use only one of ReplacmentText and Parts.");
             }
-            if (this._ReplacmentBuilder is not null) {
+            if (this._ReplacementBuilder is not null) {
                 throw new InvalidOperationException("Use only one of ReplacmentBuilder and Parts.");
             }
             this._LstPart = new List<StringSplice>();
@@ -228,7 +238,7 @@ public class StringSplice {
 
 
     protected virtual StringSplice Factory(int start, int length) {
-        return new StringSplice(this.GetSubStringWithRange(), start, length);
+        return new StringSplice(this.AsSubString(), start, length);
     }
 
     public string BuildReplacement() {
@@ -236,7 +246,7 @@ public class StringSplice {
             var result = new StringBuilder();
             this.BuildReplacementStringBuilder(result);
             return result.ToString();
-        } else { 
+        } else {
             return this.GetText();
         }
     }
@@ -245,30 +255,34 @@ public class StringSplice {
         if (this._LstPart is null) {
             return;
         } else {
-            //string? textCache = null;
             int posEnd = 0;
             for (int idx = 0; idx < this._LstPart.Count; idx++) {
                 var item = this._LstPart[idx];
                 if (posEnd < item.Range.Start.Value) {
-                    //textCache ??= this._Text.ToString();
-                    //result.Append(textCache[posEnd..item.Range.Start.Value]);
-                    result.Append(this._Text.GetSubString(this.Range).AsSpan());
+                    var span = this._Text.GetSubString(this.Range)
+                        .AsSpan()[new Range(posEnd, item.Range.Start.Value)];
+                    result.Append(span);
                 }
 
-                if (item._ReplacmentText is not null) {
-                    result.Append(item._ReplacmentText!);
-                } else if (item._ReplacmentBuilder is not null) {
-                    result.Append(item._ReplacmentBuilder!);
+                if (item._ReplacementText is not null) {
+                    result.Append(item._ReplacementText!);
+                } else if (item._ReplacementBuilder is not null) {
+                    result.Append(item._ReplacementBuilder!);
+                } else if (item._LstPart is not null) {
+                    item.BuildReplacementStringBuilder(result);
                 }
+
                 posEnd = item.Range.End.Value;
             }
 
             // add the tail
             if (posEnd < this.Length) {
+                var span = this._Text.GetSubString(this.Range).AsSpan();
                 if (posEnd == 0) {
-                    result.Append(this._Text.GetSubString(this.Range).AsSpan());
+                    result.Append(span);
                 } else {
-                    result.Append(this._Text.GetSubString(this.Range).AsSpan()[posEnd..^0]);
+                    span = span[posEnd..^0];
+                    result.Append(span);
                 }
             }
         }
@@ -276,6 +290,10 @@ public class StringSplice {
 
     public override string ToString() {
         return this.BuildReplacement();
+    }
+
+    private string GetDebuggerDisplay() {
+        return this._Text.ToString();
     }
 }
 #if false

@@ -1,7 +1,7 @@
 ﻿namespace Brimborium.Details;
 
 public struct SubString {
-    private readonly string _Text;
+    private readonly string _Text = String.Empty;
     private readonly Range _Range;
 
     public SubString(
@@ -13,6 +13,7 @@ public struct SubString {
     public SubString(
         string text,
         Range range) {
+        this._Text = text;
         if (range.Start.IsFromEnd || range.End.IsFromEnd) {
             var (offset, length) = range.GetOffsetAndLength(text.Length);
             range = new Range(offset, offset + length);
@@ -20,7 +21,6 @@ public struct SubString {
             if (text.Length < range.Start.Value) { throw new ArgumentOutOfRangeException(nameof(range)); }
             if (text.Length < range.End.Value) { throw new ArgumentOutOfRangeException(nameof(range)); }
         }
-        this._Text = text;
         this._Range = range;
     }
 
@@ -36,7 +36,7 @@ public struct SubString {
 
     public SubString GetSubString(Range range) {
         var (thisOffset, thisLength) = this.Range.GetOffsetAndLength(this._Text.Length);
-        var (rangeOffset, rangeLength) = range.GetOffsetAndLength(this.Length);
+        var (rangeOffset, rangeLength) = range.GetOffsetAndLength(thisLength);
 
         var nextRange = new Range(thisOffset + rangeOffset, thisOffset + rangeOffset + rangeLength);
         if (nextRange.Start.Value > nextRange.End.Value) { throw new ArgumentOutOfRangeException(nameof(range)); }
