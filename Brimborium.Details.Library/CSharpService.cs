@@ -256,11 +256,13 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             var sourceCode = sourceText.ToString();
             if (sourceCode.Contains('§')) {
                 foreach (System.Text.RegularExpressions.Match match in regexSimple.Matches(sourceCode)) {
+                    var matchInfo = MatchUtility.parseMatch(match.Value);
+                    if (matchInfo is null) { continue; }
                     var sourceCodeMatch = new SourceCodeMatch(
                         FilePath: this.SolutionInfo.DetailsRoot.Create(documentFilePath),
                         Index: match.Index,
                         Line: 0,
-                        Match: MatchUtility.parseMatch(match.Value)
+                        Match: matchInfo
                     );
                     var syntaxTree = await document.GetSyntaxTreeAsync();
                     if (syntaxTree is null) {
@@ -272,10 +274,10 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                     var location = syntaxTree.GetLocation(
                         new Microsoft.CodeAnalysis.Text.TextSpan(
                             sourceCodeMatch.Index,
-                            sourceCodeMatch.Match.MatchingText.Length));
+                            sourceCodeMatch.Match.MatchLength));
                     var lineSpan = syntaxTree.GetLineSpan(new Microsoft.CodeAnalysis.Text.TextSpan(
                             sourceCodeMatch.Index,
-                            sourceCodeMatch.Match.MatchingText.Length));
+                            sourceCodeMatch.Match.MatchLength));
                     var line = lineSpan.StartLinePosition.Line;
                     sourceCodeMatch = sourceCodeMatch with { Line = line };
                     var syntaxToken = syntaxTree.GetRoot().FindToken(sourceCodeMatch.Index, true);

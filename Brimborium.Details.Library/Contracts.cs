@@ -22,23 +22,38 @@ public record SourceCodeMatch(
     SourceCodeMatchCSContext? CSContext = null
 );
 
+public enum MatchInfoKind { 
+    Invalid,
+    Paragraph,
+    ParagraphCommand,
+    DetailsLink,
+    DetailscodeLink,
+    DetailsLinkMarkdown,
+    DetailscodeLinkMarkdown
+}
+
 public record MatchInfo(
-    string MatchingText,
-    bool IsCommand,
-    string[] Parts
+    MatchInfoKind Kind,
+    int MatchLength,
+    string Path,
+    string Command,
+    string Anchor,
+    string Comment
 ) {
+    /*
     protected virtual bool PrintMembers(StringBuilder stringBuilder) {
         stringBuilder.Append($"MatchingText = \"{MatchingText}\", IsCommand = {IsCommand}, ");
-        stringBuilder.Append("Parts = [");
-        for (int idx = 0; idx < Parts.Length; idx++) {
-            if (idx > 0) {
-                stringBuilder.Append(", ");
-            }
-            stringBuilder.Append("\"").Append(Parts[idx]).Append("\"");
-        }
-        stringBuilder.Append("]");
+        //stringBuilder.Append("Parts = [");
+        //for (int idx = 0; idx < Parts.Length; idx++) {
+        //    if (idx > 0) {
+        //        stringBuilder.Append(", ");
+        //    }
+        //    stringBuilder.Append("\"").Append(Parts[idx]).Append("\"");
+        //}
+        //stringBuilder.Append("]");
         return true;
     }
+    */
 }
 
 public record SourceCodeMatchCSContext(

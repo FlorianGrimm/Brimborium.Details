@@ -10,7 +10,9 @@ public class StringSpliceTests {
         var part81 = sut.CreatePart(8, 1);
         Assert.Equal("r", part81?.GetText());
 
-        Assert.Equal("2..4;8..9", string.Join(";", sut.GetArrayPart().Select(item => item.Range.ToString())));
+        Assert.Equal("2..4;8..9", string.Join(";",
+            sut.GetArrayPart()?.Select(item => item.Range.ToString())
+            ?? throw new Exception("sut.GetArrayPart() is null")));
     }
     [Fact]
     public void T002CreatePartDown() {
@@ -22,7 +24,9 @@ public class StringSpliceTests {
         var part22 = sut.CreatePart(2, 2);
         Assert.Equal("ll", part22?.GetText());
 
-        Assert.Equal("2..4;8..9", string.Join(";", sut.GetArrayPart().Select(item => item.Range.ToString())));
+        Assert.Equal("2..4;8..9", string.Join(";",
+            sut.GetArrayPart()?.Select(item => item.Range.ToString())
+            ?? throw new Exception("sut.GetArrayPart() is null")));
     }
 
     [Fact]
@@ -34,8 +38,10 @@ public class StringSpliceTests {
             if (p is null) throw new Exception("p is null");
             act.Add(p);
         }
-        Assert.Equal("0..2;4..6;6..8;8..10", string.Join(";", sut.GetArrayPart().Select(item => item.Range.ToString())));
-        Assert.Equal("Heo Worl", string.Join("", sut.GetArrayPart().Select(item => item.GetText())));
+        Assert.Equal("0..2;4..6;6..8;8..10", string.Join(";", sut.GetArrayPart()?.Select(item => item.Range.ToString())
+            ?? throw new Exception("sut.GetArrayPart() is null")));
+        Assert.Equal("Heo Worl", string.Join("", sut.GetArrayPart()?.Select(item => item.GetText())
+            ?? throw new Exception("sut.GetArrayPart() is null")));
     }
 
     [Fact]
@@ -64,7 +70,7 @@ public class StringSpliceTests {
 
         var b = sut.GetOrCreatePart(4, 4);
         Assert.NotNull(b);
-        
+
         Assert.Same(a, b);
 
         var c = sut.GetOrCreatePart(4, 40);
@@ -72,7 +78,7 @@ public class StringSpliceTests {
 
     }
 
-    
+
 
     [Fact]
     public void T011BuildReplacement() {

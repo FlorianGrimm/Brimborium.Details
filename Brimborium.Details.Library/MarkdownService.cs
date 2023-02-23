@@ -68,13 +68,13 @@ public class MarkdownService {
                     System.Console.Out.WriteLine("ParagraphBlock");
                     for (var inline = paragraphBlock.Inline.FirstChild; inline is not null; inline = inline.NextSibling) {
                         if (inline is LiteralInline literalInline) {
-                            var match = MatchUtility.parseMatchIfMatches(literalInline.Content.ToString());
+                            var match = MatchUtility.parseMatch(literalInline.Content.ToString());
                             if (match is not null) {
                                 System.Console.Out.WriteLine($"  literalInline - {literalInline.Content} - {match}");
                             } else {
                                 System.Console.Out.WriteLine($"  literalInline - {literalInline.Content}");
                             }
-                            if (match is not null && match.IsCommand) {
+                            if (match is not null && !string.IsNullOrEmpty( match.Command)) {
                                 // var command = this.GetMatchCommand(match);
                                 // command
                             }

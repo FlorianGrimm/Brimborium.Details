@@ -37,7 +37,7 @@ public static class Program {
         using IHost host = hostBuilder.Build();
         var solutionInfo = host.Services.GetService<SolutionInfo>();
         if (solutionInfo is null) { return; }
-        //host.WaitForShutdown
+        
         var ctsMain = new CancellationTokenSource();
         await host.StartAsync(ctsMain.Token);
 

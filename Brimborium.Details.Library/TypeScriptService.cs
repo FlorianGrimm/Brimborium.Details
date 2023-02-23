@@ -62,7 +62,7 @@ public class TypeScriptService {
                     if (pos >= 0) {
                         line = line.Substring(pos + 2);
                     }
-                    var match = MatchUtility.parseMatchIfMatches(line);
+                    var match = MatchUtility.parseMatch(line);
                     if (match is not null) {
                         var sourceCodeMatch = new SourceCodeMatch(
                                 FilePath: tsFile,

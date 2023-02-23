@@ -1,6 +1,6 @@
 ﻿namespace Brimborium.Details;
 
-public class FileName:IEquatable<FileName> {
+public class FileName : IEquatable<FileName> {
     private string? _RelativePath;
     private FileName? _RootFolder;
     private string? _AbsolutePath;
@@ -30,7 +30,7 @@ public class FileName:IEquatable<FileName> {
 
     public FileName CreateWithAbsolutePath(string absolutePath) {
         return new FileName() {
-            RootFolder=this,
+            RootFolder = this,
             AbsolutePath = absolutePath
         };
     }
@@ -105,7 +105,7 @@ public class FileName:IEquatable<FileName> {
     }
 
     public override string ToString() {
-        if (this._RelativePath is not null) { 
+        if (this._RelativePath is not null) {
             return this._RelativePath;
         }
         if (this._AbsolutePath is not null) {
@@ -148,11 +148,15 @@ public class FileName:IEquatable<FileName> {
             .GetHashCode();
     }
 
+    // Rebase changes the root folder of the FileName
+    // if the root folder is the same, it returns the same instance
+    // if the root folder is different it returns a new instance with the new root folder
+    // if there is no root folder, it returns null
     public FileName? Rebase(FileName nextbase) {
         if (ReferenceEquals(this._RootFolder, nextbase)) {
             return this;
         }
-        if (this._RootFolder?.AbsolutePath is not null 
+        if (this._RootFolder?.AbsolutePath is not null
             && nextbase._RootFolder?.AbsolutePath is not null
             && string.Equals(this._RootFolder.AbsolutePath, nextbase._RootFolder.AbsolutePath, StringComparison.InvariantCultureIgnoreCase)
             ) {
