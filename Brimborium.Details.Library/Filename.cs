@@ -1,6 +1,9 @@
 ﻿namespace Brimborium.Details;
 
 public class FileName : IEquatable<FileName> {
+    private static FileName? _Empty;
+    public static FileName Empty => _Empty ??= new FileName();
+
     private string? _RelativePath;
     private FileName? _RootFolder;
     private string? _AbsolutePath;
@@ -157,8 +160,7 @@ public class FileName : IEquatable<FileName> {
             return this;
         }
         if (this._RootFolder?.AbsolutePath is not null
-            && nextbase._RootFolder?.AbsolutePath is not null
-            && string.Equals(this._RootFolder.AbsolutePath, nextbase._RootFolder.AbsolutePath, StringComparison.InvariantCultureIgnoreCase)
+            && string.Equals(this._RootFolder.AbsolutePath, nextbase.AbsolutePath, StringComparison.InvariantCultureIgnoreCase)
             ) {
             return this;
         }
@@ -169,5 +171,13 @@ public class FileName : IEquatable<FileName> {
         if (otherAbsolutePath is null) { return null; }
 
         return new FileName() { RootFolder = nextbase, AbsolutePath = this.AbsolutePath };
+    }
+
+    public FileName? GetParentDirectory(){
+        var thisAbsolutePath = this.AbsolutePath;
+        if (thisAbsolutePath is  null) {return null;}
+        var directoryName = System.IO.Path.GetDirectoryName(thisAbsolutePath);
+        if (directoryName is null) {return null;}
+        return new FileName() { RootFolder = this._RootFolder, AbsolutePath = directoryName };
     }
 }

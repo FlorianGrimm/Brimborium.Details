@@ -125,3 +125,6 @@ if # Header1..6 flowed by a line starting with details://
 and there is a §-marker in the source code
 the link will be updated - if the §-marker is defined multiple times then a list of links is shown - sorted by the filename+line.
 if a Short Description is present it will be shown next (distinct for many §-marker)
+
+
+dotnet run --project .\Brimborium.Details\ -- --DetailsConfiguration C:\github.com\FlorianGrimm\Brimborium.Details\details.json

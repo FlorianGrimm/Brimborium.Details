@@ -1,24 +1,30 @@
 namespace Brimborium.Details;
 
-[Brimborium.Registrator.Singleton]
+[Brimborium.Registrator.Transient]
 public class CSharpService {
-    private static Regex regexSimple = new System.Text.RegularExpressions.Regex("//[ \t]*§([^\\r\\n]+)");
-
-    public readonly SolutionInfo SolutionInfo;
-    private readonly Dictionary<ProjectId, List<SourceCodeMatch>> _SourceCodeMatchByProject;
-
-    public CSharpService(SolutionInfo solutionInfo) {
-        this.SolutionInfo = solutionInfo;
-        this._SourceCodeMatchByProject = new Dictionary<ProjectId, List<SourceCodeMatch>>();
+    private static bool _RegisterDefaultsIsCalled = false;
+    public static void RegisterDefaults() {
+        if (!_RegisterDefaultsIsCalled) {
+            Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+            _RegisterDefaultsIsCalled = true;
+        }
     }
 
-    public async Task ParseCSharp(
+    private static Regex regexSimple = new System.Text.RegularExpressions.Regex("//[ \t]*§([^\\r\\n]+)");
+
+    public CSharpService() {
+    }
+
+
+    public async Task<CSharpContext?> PrepareSolutionCSharp(
         DetailContext detailContext,
         CancellationToken cancellationToken) {
-        var solutionFile = SolutionInfo.SolutionFile.AbsolutePath;
-        if (solutionFile is null) { return; }
+        SolutionInfo solutionInfo = detailContext.SolutionInfo;
+        var solutionFile = solutionInfo.SolutionFile.AbsolutePath;
+        if (solutionFile is null) { return null; }
         Console.WriteLine($"Loading solution '{solutionFile}'");
-        Microsoft.Build.Locator.MSBuildLocator.RegisterDefaults();
+        RegisterDefaults();
+
         using var workspace = MSBuildWorkspace.Create();
         workspace.WorkspaceFailed += (sender, args) => Console.WriteLine(args.Diagnostic.Message);
         var solution = await workspace.OpenSolutionAsync(solutionFile);
@@ -33,7 +39,7 @@ public class CSharpService {
 
         var lstMainProject = new List<Microsoft.CodeAnalysis.Project>();
         var queue = new Queue<Microsoft.CodeAnalysis.Project>();
-        foreach (var projectName in SolutionInfo.ListMainProjectName) {
+        foreach (var projectName in solutionInfo.ListMainProjectName) {
             var project = solution.Projects.Where(project => project.Name == projectName).FirstOrDefault();
             if (project is null) {
                 System.Console.Out.WriteLine($"WARNING: ListMainProjectName {projectName} - not found");
@@ -49,11 +55,11 @@ public class CSharpService {
                 lstMainProject.Add(project);
                 queue.Enqueue(project);
             }
-        } 
+        }
 
         // TODO: make configurable
         //var filterPath = System.IO.Path.Combine(SolutionInfo.DetailsRoot, "src");
-        var filterPath = SolutionInfo.DetailsRoot.AbsolutePath ?? string.Empty;
+        var filterPath = solutionInfo.DetailsRoot.AbsolutePath ?? string.Empty;
         System.Console.Out.WriteLine($"INFO: filterPath {filterPath}");
 
         var projectDependencyGraph = solution.GetProjectDependencyGraph();
@@ -69,7 +75,11 @@ public class CSharpService {
                 System.Console.Out.WriteLine($"WARNING: ProjectDependency {project.Name} - {project.Id} - no file path");
                 continue;
             }
-
+            if (project.FilePath.EndsWith("Tests.csproj", StringComparison.InvariantCultureIgnoreCase)
+                || project.FilePath.EndsWith("Test.csproj", StringComparison.InvariantCultureIgnoreCase)) {
+                System.Console.Out.WriteLine($"INFO: ProjectDependency {project.Name} - {project.Id} - skipped");
+                continue;
+            }
             if (!project.FilePath.StartsWith(filterPath, StringComparison.InvariantCultureIgnoreCase)) {
                 System.Console.Out.WriteLine($"INFO: ProjectDependency {project.Name} - {project.Id} - skipped");
                 continue;
@@ -86,19 +96,60 @@ public class CSharpService {
         }
 
         lstRelevantProject.Sort((a, b) => StringComparer.InvariantCulture.Compare(a.Name, b.Name));
+        var lstRelevantProjectProjectInfo = new List<ProjectProjectInfo>();
+        foreach (var project in lstRelevantProject) {
+            if (project.FilePath is null) {
+                System.Console.Error.WriteLine($"ERROR: project.FilePath is null");
+                continue;
+            }
+            
+            
+            
+            var lstDocument = new List<FileName>();
+            foreach (var document in project.Documents) {
+                var filePath = document.FilePath;
+                if (filePath is null) { continue; }
+                lstDocument.Add(new FileName() {
+                    AbsolutePath = filePath,
+                });
+            }
+            
+            lstRelevantProjectProjectInfo.Add(
+                new ProjectProjectInfo(
+                    project,
+                    detailContext.AddCSharpProject(
+                        project.FilePath,
+                        project.Name,
+                        project.Id,
+                        lstDocument)));
+        }
+        var csharpContext = new CSharpContext(
+            solution,
+            lstRelevantProjectProjectInfo);
+        return csharpContext;
+    }
+    
+    public async Task ParseCSharp(
+        DetailContext detailContext,
+        CSharpContext csharpContext,
+        CancellationToken cancellationToken
+        ) {
+        var solutionInfo = detailContext.SolutionInfo;
+        var solution = csharpContext.Solution;
+        var lstCompilingProjects = new List<ProjectProjectInfo>();
 
-        var lstCompilingProjects = new List<Microsoft.CodeAnalysis.Project>();
-        await System.Threading.Tasks.Parallel.ForEachAsync(
-            lstRelevantProject,
+        await ParallelUtility.ForEachAsync(
+            csharpContext.lstRelevantProjectProjectInfo,
             cancellationToken,
-            async (project, cancellationToken) => {
+            async (projectProjectInfo, cancellationToken) => {
+                var project = projectProjectInfo.Project;
                 var compilation = await project.GetCompilationAsync();
                 if (compilation is null) {
                     System.Console.Out.WriteLine($"INFO: Compiles: {project.Name} - {project.Id} compilation is null");
                 } else {
                     System.Console.Out.WriteLine($"INFO: Compiles: {project.Name} - {project.Id} - OK");
                     lock (lstCompilingProjects) {
-                        lstCompilingProjects.Add(project);
+                        lstCompilingProjects.Add(projectProjectInfo);
                     }
                 }
             }
@@ -155,35 +206,42 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             }
         }
 #endif
-
-
-        foreach (var project in lstCompilingProjects) {
+        
+        foreach (var projectProjectInfo in lstCompilingProjects) {
+            var project = projectProjectInfo.Project;
             var compilation = await project.GetCompilationAsync();
             if (compilation is null) {
                 System.Console.Error.WriteLine($"ERROR: compilation is null");
                 continue;
             }
-            var lstSourceCodeMatch = new List<SourceCodeMatch>();
-            await System.Threading.Tasks.Parallel.ForEachAsync(
+            var lstCSharpDocumentInfo = new List<CSharpDocumentInfo>();
+
+            await ParallelUtility.ForEachAsync(
                 project.Documents,
                 cancellationToken,
                 async (document, cancellationToken) => {
-                    await parseDocument(solution, compilation, document, lstSourceCodeMatch);
-                }
-            );
-            lock (this._SourceCodeMatchByProject) {
-                this._SourceCodeMatchByProject[project.Id] = lstSourceCodeMatch;
-            }
+                    var documentInfo = new CSharpDocumentInfo(
+                            detailContext.SolutionInfo.DetailsRoot.CreateWithAbsolutePath(document.FilePath ?? string.Empty)
+                            );
+                    await parseDocument(
+                        solutionInfo, solution, compilation, document, documentInfo);
+                    lock (lstCSharpDocumentInfo) {
+                        lstCSharpDocumentInfo.Add(documentInfo);
+                    }
+                });
+            detailContext.AddCSharpDocumentInfo(project.Id, lstCSharpDocumentInfo);
         }
+
 
         // foreach (var project in lstRelevantProject) {
         //     foreach (var document in project.Documents) {
         //         System.Console.Out.WriteLine($"{document.Name} - {document.FilePath}");
         //     }
         // }
+#if false
         {
             System.Console.Out.WriteLine("found matches:");
-            var lstSourceCodeMatch = this._SourceCodeMatchByProject.Values.SelectMany(item => item).ToList();
+            var lstSourceCodeMatch = sourceCodeMatchByProject.Values.SelectMany(item => item).ToList();
             foreach (var sourceCodeMatch in lstSourceCodeMatch) {
                 // if(sourceCodeMatch is SourceCodeMatchCS sourceCodeMatchCS){
                 //     System.Console.Out.WriteLine($"{sourceCodeMatch.RelativePath} - {sourceCodeMatch.Line} - {sourceCodeMatch.MatchingText}");
@@ -194,6 +252,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                 System.Console.Out.WriteLine(sourceCodeMatch.ToString());
             }
         }
+#endif
 #if false
         foreach (var project in lstCompilingProjects) {
             var compilation = await project.GetCompilationAsync();
@@ -242,10 +301,12 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
     }
 
     private async Task parseDocument(
+        SolutionInfo solutionInfo,
         Solution solution,
         Compilation compilation,
         Document document,
-        List<SourceCodeMatch> lstSourceCodeMatch) {
+        CSharpDocumentInfo documentInfo
+        ) {
         var documentFilePath = document.FilePath;
         if (documentFilePath is null) { return; }
 
@@ -256,36 +317,46 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             var sourceCode = sourceText.ToString();
             if (sourceCode.Contains('§')) {
                 foreach (System.Text.RegularExpressions.Match match in regexSimple.Matches(sourceCode)) {
-                    var matchInfo = MatchUtility.parseMatch(match.Value);
+                    var ownMatchPath = PathInfo.Create(documentInfo.FileName.RelativePath ?? string.Empty, string.Empty);
+                    var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath, 0, match.Index);
                     if (matchInfo is null) { continue; }
+
                     var sourceCodeMatch = new SourceCodeMatch(
-                        FilePath: this.SolutionInfo.DetailsRoot.Create(documentFilePath),
-                        Index: match.Index,
-                        Line: 0,
+                        documentInfo.FileName,
                         Match: matchInfo
                     );
                     var syntaxTree = await document.GetSyntaxTreeAsync();
                     if (syntaxTree is null) {
                         System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxTree is null");
-                        lstSourceCodeMatch.Add(sourceCodeMatch);
+
+                        (matchInfo.IsCommand
+                            ? documentInfo.GetLstConsumes()
+                            : documentInfo.GetLstProvides()
+                            ).Add(sourceCodeMatch);
                         continue;
                     }
 
-                    var location = syntaxTree.GetLocation(
-                        new Microsoft.CodeAnalysis.Text.TextSpan(
-                            sourceCodeMatch.Index,
-                            sourceCodeMatch.Match.MatchLength));
-                    var lineSpan = syntaxTree.GetLineSpan(new Microsoft.CodeAnalysis.Text.TextSpan(
-                            sourceCodeMatch.Index,
-                            sourceCodeMatch.Match.MatchLength));
+                    var startIndex = matchInfo.MatchRange.Start.Value;
+                    var textSpan = new Microsoft.CodeAnalysis.Text.TextSpan(
+                        startIndex,
+                        matchInfo.MatchLength);
+                    var location = syntaxTree.GetLocation(textSpan);
+                    var lineSpan = syntaxTree.GetLineSpan(textSpan);
                     var line = lineSpan.StartLinePosition.Line;
-                    sourceCodeMatch = sourceCodeMatch with { Line = line };
-                    var syntaxToken = syntaxTree.GetRoot().FindToken(sourceCodeMatch.Index, true);
+                    matchInfo = matchInfo with { Line = line };
+                    sourceCodeMatch = sourceCodeMatch with {
+                        Match = matchInfo
+                    };
+                    var syntaxToken = syntaxTree.GetRoot().FindToken(
+                        startIndex, true);
                     var semanticModel = compilation.GetSemanticModel(syntaxTree);
                     var syntaxNode = syntaxTree.GetRoot().FindNode(syntaxToken.GetLocation().SourceSpan);
                     if (syntaxNode is null) {
                         System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxNode is null");
-                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        (matchInfo.IsCommand
+                          ? documentInfo.GetLstConsumes()
+                          : documentInfo.GetLstProvides()
+                          ).Add(sourceCodeMatch);
                         continue;
                     }
                     ISymbol? symbol = null;
@@ -293,26 +364,27 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
 
                     if (symbol is null) {
                         System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} symbol is null");
-                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        (matchInfo.IsCommand
+                          ? documentInfo.GetLstConsumes()
+                          : documentInfo.GetLstProvides()
+                          ).Add(sourceCodeMatch);
                         continue;
                     }
 
                     var (methodSymbol, fullName, methodName, typeName, namespaceName) = GetNamesToSymbol(symbol);
 
-                    // if (lstSymbol.Count == 0) {
-                    //     System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} lstSymbol is empty");
-                    //     lstSourceCodeMatch.Add(sourceCodeMatch);
-                    //     continue;
-                    // }
                     if (fullName is null) {
                         System.Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} fullName is null");
-                        lstSourceCodeMatch.Add(sourceCodeMatch);
+                        (matchInfo.IsCommand
+                          ? documentInfo.GetLstConsumes()
+                          : documentInfo.GetLstProvides()
+                          ).Add(sourceCodeMatch);
                         continue;
                     }
 
                     var csContext = new SourceCodeMatchCSContext(
-                            FilePath: sourceCodeMatch.FilePath,
-                            Line: sourceCodeMatch.Line,
+                            //FilePath: sourceCodeMatch.FilePath,
+                            //Line: sourceCodeMatch.Match.Line,
                             FullName: fullName,
                             Namespace: namespaceName,
                             Type: typeName,
@@ -320,8 +392,12 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                     sourceCodeMatch = sourceCodeMatch with {
                         CSContext = csContext
                     };
-                    lstSourceCodeMatch.Add(sourceCodeMatch);
-
+                    (matchInfo.IsCommand
+                          ? documentInfo.GetLstConsumes()
+                          : documentInfo.GetLstProvides()
+                          ).Add(sourceCodeMatch);
+#warning TODO
+#if false
                     if (methodSymbol is not null) {
                         var lstSymbolCallerInfo = await SymbolFinder.FindCallersAsync(methodSymbol, solution, CancellationToken.None);
                         System.Console.Out.WriteLine(sourceCodeMatch);
@@ -338,6 +414,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                         System.Console.Out.WriteLine("");
                         continue;
                     }
+#endif
                 }
             }
         }
@@ -390,55 +467,13 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
     public async Task WriteDetail(
         DetailContext detailContext,
         CancellationToken cancellationToken) {
-        // $ todo.md
-        Console.WriteLine($"DetailPath {SolutionInfo.DetailsFolder}");
+        // § todo.md
+        Console.WriteLine($"DetailPath {detailContext.SolutionInfo.DetailsFolder}");
         await Task.CompletedTask;
     }
-
-    /*
-    public static string GetCSharpTypeName(Type type) {
-        if (type == null) {
-            return "null";
-        } else if (type.IsGenericType) {
-            var sb = new StringBuilder();
-            sb.Append(type.Name.Substring(0, type.Name.IndexOf('`')));
-            sb.Append('<');
-            var first = true;
-            foreach (var arg in type.GetGenericArguments()) {
-                if (first) {
-                    first = false;
-                } else {
-                    sb.Append(", ");
-                }
-                sb.Append(GetCSharpTypeName(arg));
-            }
-            sb.Append('>');
-            return sb.ToString();
-        } else {
-            return type.Name;
-        }
-    }
-    */
-
-    /*
-public class MethodSymbolVisitor : SymbolVisitor{
-     override public void VisitAssembly(IAssemblySymbol symbol) {
-        symbol.GlobalNamespace.Accept(this);
-    }
-    override public void VisitNamespace(INamespaceSymbol symbol) {
-        foreach (var child in symbol.GetMembers()) {
-            child.Accept(this);
-        }
-    }
-    override public void VisitNamedType(INamedTypeSymbol symbol) {
-        foreach (var child in symbol.GetMembers()) {
-            child.Accept(this);
-        }
-    }
-    override public void VisitMethod(IMethodSymbol symbol) {
-        //System.Console.Out.WriteLine($"  {symbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)}");
-        
-    }
 }
-*/
-}
+
+public record CSharpContext(
+    Solution Solution,
+    List<ProjectProjectInfo> lstRelevantProjectProjectInfo
+    );

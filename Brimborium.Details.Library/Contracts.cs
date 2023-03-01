@@ -16,14 +16,16 @@ public class SolutionInfoConfiguration {
 
 public record SourceCodeMatch(
     FileName FilePath,
-    int Index,
-    int Line,
+    //int Index,
+    //int Line,
     MatchInfo Match,
     SourceCodeMatchCSContext? CSContext = null
-);
+) {
+}
 
-public enum MatchInfoKind { 
+public enum MatchInfoKind {
     Invalid,
+    Anchor,
     Paragraph,
     ParagraphCommand,
     DetailsLink,
@@ -34,31 +36,26 @@ public enum MatchInfoKind {
 
 public record MatchInfo(
     MatchInfoKind Kind,
-    int MatchLength,
-    string Path,
+    PathInfo MatchPath,
+    Range MatchRange,
+    PathInfo Path,
     string Command,
-    string Anchor,
-    string Comment
+    PathInfo Anchor,
+    string Comment,
+    int Line = 0
 ) {
-    /*
-    protected virtual bool PrintMembers(StringBuilder stringBuilder) {
-        stringBuilder.Append($"MatchingText = \"{MatchingText}\", IsCommand = {IsCommand}, ");
-        //stringBuilder.Append("Parts = [");
-        //for (int idx = 0; idx < Parts.Length; idx++) {
-        //    if (idx > 0) {
-        //        stringBuilder.Append(", ");
-        //    }
-        //    stringBuilder.Append("\"").Append(Parts[idx]).Append("\"");
-        //}
-        //stringBuilder.Append("]");
-        return true;
+    public bool IsCommand => !string.IsNullOrEmpty(this.Command);
+
+    public int MatchLength {
+        get {
+            return this.MatchRange.End.Value - this.MatchRange.Start.Value;
+        }
     }
-    */
 }
 
 public record SourceCodeMatchCSContext(
-    FileName FilePath,
-    int Line,
+    //FileName FilePath,
+    //int Line,
     string FullName,
     string? Namespace,
     string? Type,
@@ -84,5 +81,122 @@ public interface ISolutionAnalyzer {
 }
 
 public interface IProjectAnalyzer {
-    Task AnalyzeAsync(SolutionInfo solutionInfo, ProjectInfo projectInfo, CancellationToken cancellationToken);
+    //Task AnalyzeAsync(SolutionInfo solutionInfo, ProjectInfo projectInfo, CancellationToken cancellationToken);
 }
+
+public interface IDocumentInfo {
+    FileName FileName { get; }
+
+    FileName GetFileNameProjectRebased(ProjectInfo projectInfo);
+
+    List<SourceCodeMatch>? LstConsumes { get; }
+
+    List<SourceCodeMatch>? LstProvides { get; }
+}
+
+public record MarkdownDocumentInfo(
+    FileName FileName,
+    string DetailsRelativePath
+) : IDocumentInfo {
+    public List<string> LstHeading { get; set; } = new();
+    public List<SourceCodeMatch>? LstConsumes { get; set; }
+    public List<SourceCodeMatch> LstProvides { get; set; } = new();
+
+    public List<SourceCodeMatch> GetLstConsumes() => this.LstConsumes ??= new();
+
+    public List<SourceCodeMatch> GetLstProvides() => this.LstProvides ??= new();
+
+    public FileName GetFileNameProjectRebased(ProjectInfo projectInfo) {
+        if (this._FileNameProjectRebased is null) {
+            this._FileNameProjectRebased = this.FileName.Rebase(projectInfo.FolderPath) ?? throw new InvalidOperationException();
+        }
+        return this._FileNameProjectRebased;
+    }
+    private FileName? _FileNameProjectRebased;
+
+    public static MarkdownDocumentInfo Create(
+            FileName fileName,
+            FileName detailFolder) {
+        return new MarkdownDocumentInfo(
+            fileName,
+            fileName.Rebase(detailFolder)?.RelativePath ?? throw new InvalidOperationException()
+            );
+    }
+
+    public List<IReplacementFinder>? LstReplacementFinder { get; set; }
+    public List<IReplacementFinder> GetLstReplacementFinder() => this.LstReplacementFinder ??= new();
+}
+
+public record CSharpDocumentInfo(
+    FileName FileName
+) : IDocumentInfo {
+    public List<SourceCodeMatch>? LstConsumes { get; set; }
+
+    public List<SourceCodeMatch>? LstProvides { get; set; }
+
+    public List<SourceCodeMatch> GetLstConsumes() => this.LstConsumes ??= new();
+
+    public List<SourceCodeMatch> GetLstProvides() => this.LstProvides ??= new();
+
+    public FileName GetFileNameProjectRebased(ProjectInfo projectInfo) {
+        if (this._FileNameProjectRebased is null) {
+            this._FileNameProjectRebased = this.FileName.Rebase(projectInfo.FolderPath) ?? throw new InvalidOperationException();
+        }
+        return this._FileNameProjectRebased;
+    }
+    private FileName? _FileNameProjectRebased;
+}
+
+
+public record TypescriptDocumentInfo(
+    FileName FileName
+) : IDocumentInfo {
+    public List<SourceCodeMatch>? LstConsumes { get; set; }
+
+    public List<SourceCodeMatch>? LstProvides { get; set; }
+
+    public List<SourceCodeMatch> GetLstConsumes() => this.LstConsumes ??= new();
+
+    public List<SourceCodeMatch> GetLstProvides() => this.LstProvides ??= new();
+
+    public FileName GetFileNameProjectRebased(ProjectInfo projectInfo) {
+        if (this._FileNameProjectRebased is null) {
+            this._FileNameProjectRebased = this.FileName.Rebase(projectInfo.FolderPath) ?? throw new InvalidOperationException();
+        }
+        return this._FileNameProjectRebased;
+    }
+    private FileName? _FileNameProjectRebased;
+}
+
+public interface IMatchCommand {
+    bool IsMatching(MatchInfo matchInfo);
+    Task ExecuteAsync(
+        SourceCodeMatch sourceCodeMatch,
+        MarkdownDocumentWriter markdownDocumentWriter,
+        IReplacementFinder? replacementFinder,
+        DetailContextCache? cache,
+        CancellationToken cancellationToken);
+    
+    IReplacementFinder? GetReplacementFinder(
+        MarkdownDocumentInfo markdownDocumentInfo,
+        SourceCodeMatch sourceCodeMatch);
+}
+
+public interface IReplacementFinder {
+    IMatchCommand Command { get; }
+    SourceCodeMatch SourceCodeMatch { get; }
+
+    /// <summary>
+    /// The parser will call this method for the next blocks it finds in the document.
+    /// </summary>
+    /// <param name="block">the block to find.</param>
+    /// <returns>true if found</returns>
+    bool VisitBlock(Block block);
+
+    /// <summary>
+    /// The parser notify you to give up.
+    /// </summary>
+    void VisitNotFound();
+}
+
+public record ProjectProjectInfo(Project Project, ProjectInfo ProjectInfo);

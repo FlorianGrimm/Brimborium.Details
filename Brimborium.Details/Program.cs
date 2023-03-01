@@ -1,5 +1,5 @@
 ﻿namespace Brimborium.Details;
-// TODO https://github.com/mrlacey/CommentLinks
+// § todo.md § https://github.com/mrlacey/CommentLinks §
 public static class Program {
     public static async Task Main(string[] args) {
         System.Console.Out.WriteLine("Brimborium.Details");
@@ -17,12 +17,12 @@ public static class Program {
                 configuration.Bind(appSettings);
                 configureAppSettings(configurationBuilder, configuration, appSettings);
             });
-        hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
-            SolutionInfo? solutionInfo = appSettings.ValidateConfiguration(hostBuilderContext.Configuration);
-            if (solutionInfo is not null) {
-                serviceCollection.AddSingleton(solutionInfo);
-            }
-        });
+        // hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
+        //     SolutionInfo? solutionInfo = appSettings.ValidateConfiguration(hostBuilderContext.Configuration);
+        //     if (solutionInfo is not null) {
+        //         serviceCollection.AddSingleton(solutionInfo);
+        //     }
+        // });
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
             serviceCollection.AddServicesWithRegistrator(
                 a => {
@@ -35,7 +35,8 @@ public static class Program {
                 });
         });
         using IHost host = hostBuilder.Build();
-        var solutionInfo = host.Services.GetService<SolutionInfo>();
+        // var solutionInfo = host.Services.GetService<SolutionInfo>();
+        SolutionInfo? solutionInfo = appSettings.ValidateConfiguration(host.Services.GetRequiredService<IConfiguration>());
         if (solutionInfo is null) { return; }
         
         var ctsMain = new CancellationTokenSource();
@@ -48,6 +49,8 @@ public static class Program {
             IHostApplicationLifetime applicationLifetime = host.Services.GetRequiredService<IHostApplicationLifetime>();
             applicationLifetime.StopApplication();
         };
+
+        
         if (appSettings.Watch) {
             await host.Services.GetRequiredService<WatchService>().Initialize(solutionInfo, ctsMain.Token);
         }

@@ -31,3 +31,5 @@ global using global::Microsoft.CodeAnalysis.CSharp.Syntax;
 global using global::Microsoft.CodeAnalysis;
 global using global::Microsoft.CodeAnalysis.FindSymbols;
 global using global::Microsoft.Extensions.Logging;
+
+global using global::Brimborium.Details;

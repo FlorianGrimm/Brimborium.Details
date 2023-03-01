@@ -250,7 +250,9 @@ public class StringSplice {
         if (this._LstPart is not null && this._LstPart.Count > 0) {
             var result = new StringBuilder();
             this.BuildReplacementStringBuilder(result);
-            return result.ToString();
+            var resultValue = result.ToString();
+            //bool equal=this._Text.AsSpan()[this.Range].Equals(resultValue.AsSpan(), StringComparison.Ordinal)
+            return resultValue;
         } else {
             return this.GetText();
         }
@@ -258,7 +260,6 @@ public class StringSplice {
 
     public void BuildReplacementStringBuilder(StringBuilder result) {
         if (this._LstPart is null) {
-            return;
         } else {
             int posEnd = 0;
             for (int idx = 0; idx < this._LstPart.Count; idx++) {

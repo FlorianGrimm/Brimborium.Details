@@ -1,5 +1,6 @@
 using System.Diagnostics.Metrics;
 using System.Drawing;
+using System.Xml.Linq;
 
 namespace Brimborium.Details;
 
@@ -28,228 +29,211 @@ public static class MatchUtility {
      details
      detailscode
      */
-    public static MatchInfo? parseMatch(string value) {
-        // § Syntax-Marker.md / Syntax Marker
-        // [Syntax Marker](details://Syntax-Marker.md/Syntax Marker)
-        //var arr = value.Split(arrCharParagraph);
-        //arr = arr.Select(
-        //    item => item
-        //        .Trim())
-        //        .Where((item, idx) => (idx == 0) ? (!string.IsNullOrEmpty(item)) : true)
-        //        .ToArray();
-        //bool isCommand = false;
-        //if (arr.Length > 0) {
-        //    if (arr[0].StartsWith(">")) {
-        //        arr[0] = arr[0].Substring(1).Trim();
-        //        isCommand = true;
-        //    }
-        //}
+    public static MatchInfo? parseMatch(
+        string value, 
+        PathInfo ownMatchPath,
+        int line, int offset) {
         var lexer = new Lexer();
-
-        //string[]? Comments = null;
-        int count = 0;
+        bool eof = false;
+        int end = offset;
         var spanValue = value.AsSpan();
 
-        lexer.TrimStart(ref spanValue, ref count);
+        lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
 
-        if (lexer.IsParagraphStart(ref spanValue, ref count)) {
+        if (lexer.EatWord(lexer.SlashSlash, ref spanValue, ref end)) {
+            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+        }
+
+        int start = end;
+        if (lexer.EatWord(lexer.ParagraphHash, ref spanValue, ref end)) {
+            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+            if (!eof) {
+                var anchorValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                if (anchorValue.Length > 0) {
+                    var Anchor = anchorValue.ToString();
+                    string Comment = String.Empty;
+                    lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                    var commentValue = lexer.EatUntil(lexer.NewLine, ref spanValue, ref end, ref eof);
+                    if (commentValue.Length > 0) {
+                        Comment = anchorValue.ToString();
+                    }
+                    return new MatchInfo(
+                        Kind: MatchInfoKind.Anchor,
+                        MatchPath: ownMatchPath,
+                        MatchRange: new Range(start, end),
+                        Command: string.Empty,
+                        Anchor: PathInfo.Create(ownMatchPath.FilePath, Anchor),
+                        Path: PathInfo.Empty,
+                        Comment: Comment,
+                        Line: line
+                        );
+                }
+            } else {
+                return null;
+            }
+        }
+
+        if (lexer.EatWord(lexer.ParagraphGreater, ref spanValue, ref end)) {
+            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+            if (eof) { return null; }
+            // §>Command_Path§
+            var commandValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
+            if (commandValue.Length == 0) { return null; }
+            string Command = commandValue.ToString();
+            string Path = string.Empty;
+            string Comment = string.Empty;
+
+            if (!eof) {
+                lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+            }
+
+            if (!eof) {
+                if (lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
+                    if (!eof) {
+                        lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                    }
+                }
+            }
+            if (!eof) {
+                var pathValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                if (pathValue.Length > 0) {
+                    Path = pathValue.ToString();
+                    if (!eof) {
+                        lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                    }
+                    if (!eof) {
+                        var commentValue = lexer.EatUntil(lexer.Paragraph, ref spanValue, ref end, ref eof);
+                        if (commentValue.Length > 0) {
+                            Comment = commandValue.ToString();
+                            if (!eof && lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
+                            }
+                        }
+                    }
+                }
+            }
+            if (string.IsNullOrEmpty(Command)) {
+                return default;
+            }
+            return new MatchInfo(
+                Kind: MatchInfoKind.ParagraphCommand,
+                MatchPath: ownMatchPath,
+                MatchRange: new Range(start, end),
+                Command: Command,
+                Anchor: PathInfo.Empty,
+                Path: PathInfo.Parse(Path),
+                Comment: Comment,
+                Line: line
+                );
+        }
+
+        if (lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
+            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+            if (eof) { return null; }
+            // §_Path§Comment§
             string Path = string.Empty;
             string Anchor = string.Empty;
             string Comment = string.Empty;
 
-            if (spanValue.Length > 1) {
-                var idx = lexer.IndexOfParagraphHash(ref spanValue);
-                if (idx >= 0) {
-                    Path = lexer.Forward(idx, ref spanValue, ref count).ToString();
-                } else {
-                    Path = lexer.Forward(spanValue.Length, ref spanValue, ref count).ToString();
+            var pathValue = lexer.EatUntil(lexer.Paragraph, ref spanValue, ref end, ref eof);
+            if (pathValue.Length > 0) {
+                Path = pathValue.TrimEnd().ToString();
+            } else {
+                return default;
+            }
+
+            if (!eof && lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
+                lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+
+                var commentValue = lexer.EatUntil(lexer.Paragraph, ref spanValue, ref end, ref eof);
+                if (commentValue.Length > 0) {
+                    Comment = commentValue.TrimEnd().ToString();
+
+                    if (!eof) {
+                        lexer.EatWord(lexer.Paragraph, ref spanValue, ref end);
+                    }
                 }
             }
-            if (spanValue.Length > 0 && spanValue[0] == '#') {
-                var idx = lexer.IndexOfParagraphHash(ref spanValue);
-                if (idx >= 0) {
-                    Anchor = lexer.Forward(idx, ref spanValue, ref count).ToString();
-                }
-            }
-            if (spanValue.Length > 0 && spanValue[0] == '§') {
-                var idx = lexer.IndexOfParagraph(ref spanValue);
-                if (idx >= 0) {
-                    Comment = lexer.Forward(idx, ref spanValue, ref count).ToString();
-                } else {
-                    Comment = lexer.Forward(spanValue.Length, ref spanValue, ref count).ToString();
-                }
-            }
+
             return new MatchInfo(
                 MatchInfoKind.Paragraph,
-                MatchLength: count,
-                Path: Path,
+                MatchPath: ownMatchPath,
+                MatchRange: new Range(start, end),
+                Path: PathInfo.Parse(Path),
                 Command: string.Empty,
-                Anchor: Anchor,
-                Comment: Comment);
-        } else if (lexer.IsParagraphCommandStart(ref spanValue,ref count)) {
-            string Path = string.Empty;
-            string Comment = string.Empty;
-            string Command = string.Empty;
+                Anchor: PathInfo.Parse(Anchor),
+                Comment: Comment,
+                Line: line);
+        }
 
-            var idx = lexer.IndexOfWhitespace(ref spanValue);
-            if (idx > 0) {
-                Command = lexer.Forward(idx, ref spanValue, ref count).ToString();
-                lexer.TrimStart(ref spanValue, ref count);
+        {
+            var kind = MatchInfoKind.Invalid;
+            if (lexer.EatWord(lexer.DetailsProtocol, ref spanValue, ref end)) {
+                kind = MatchInfoKind.DetailsLink;
+            } else if (lexer.EatWord(lexer.DetailsCodeProtocol, ref spanValue, ref end)) {
+                kind = MatchInfoKind.DetailscodeLink;
+            }
+            if (kind != MatchInfoKind.Invalid) {
+                string Path = string.Empty;
+                string Comment = string.Empty;
+                var pathValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                if (pathValue.Length > 0) {
+                    Path = pathValue.ToString();
+                } else {
+                    return null;
+                }
+                if (!eof) {
+                    lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+                }
+                if (!eof) {
+                    var commentValue = lexer.EatUntil(lexer.NewLine, ref spanValue, ref end, ref eof);
+                    if (commentValue.Length > 0) {
+                        Comment = commentValue.ToString();
+                    }
+                }
 
-                idx = lexer.IndexOfWhitespace(ref spanValue);
-                if (idx > 0) {
-                    Path = lexer.Forward(idx, ref spanValue, ref count).ToString();
-                    lexer.TrimStart(ref spanValue, ref count);
-                }
-                idx = lexer.IndexOfNewLine(ref spanValue);
-                if (idx >= 0) {
-                    Comment = lexer.Forward(idx, ref spanValue, ref count).ToString();
-                }
                 return new MatchInfo(
-                    Kind: MatchInfoKind.ParagraphCommand,
-                    MatchLength: count,
-                    Command: Command,
-                    Anchor: string.Empty,
-                    Path: Path,
-                    Comment: Comment
+                    Kind: kind,
+                    MatchPath: ownMatchPath,
+                    MatchRange: new Range(start, end),
+                    Command: string.Empty,
+                    Anchor: PathInfo.Empty,
+                    Path: PathInfo.Parse(Path),
+                    Comment: Comment,
+                    Line: line
                     );
-            } else {
-                Command = lexer.Forward(spanValue.Length, ref spanValue, ref count).ToString();
-                return new MatchInfo(
-                    Kind: MatchInfoKind.ParagraphCommand,
-                    MatchLength: count,
-                    Command: Command,
-                    Anchor: string.Empty,
-                    Path: Path,
-                    Comment: Comment
-                    );
+            }
+        }
+        if (lexer.EatWord(lexer.OpenSquareBrackets, ref spanValue, ref end)) {
+            var kind = MatchInfoKind.Paragraph;
+            if (lexer.EatWord(lexer.DetailsProtocol, ref spanValue, ref end)) {
+                kind = MatchInfoKind.DetailsLink;
+            } else if (lexer.EatWord(lexer.DetailsCodeProtocol, ref spanValue, ref end)) {
+                kind = MatchInfoKind.DetailscodeLink;
+            }
+            if (kind != MatchInfoKind.Invalid) {
+                var pathValue = lexer.EatUntil(lexer.CloseSquareBrackets, ref spanValue, ref end, ref eof);
+                if (!eof && pathValue.Length > 0) {
+                    string Path = pathValue.ToString();
+                    if (lexer.EatWord(lexer.CloseSquareBrackets, ref spanValue, ref end)) {
+                        if (lexer.EatWord(lexer.OpenRoundBrackets, ref spanValue, ref end)) {
+                            var commentValue = lexer.EatUntil(lexer.CloseRoundBrackets, ref spanValue, ref end, ref eof);
+                            var Comment = commentValue.ToString();
+                            lexer.EatWord(lexer.CloseRoundBrackets, ref spanValue, ref end);
+                            return new MatchInfo(
+                                Kind: kind,
+                                MatchPath: ownMatchPath,
+                                MatchRange: new Range(start, end),
+                                Command: string.Empty,
+                                Anchor: PathInfo.Empty,
+                                Path: PathInfo.Parse(Path),
+                                Comment: Comment,
+                                Line: line
+                                );
+                        }
+                    }
+                }
             }
         }
         return null;
-        //if (spanValue.StartsWith()
-
-        /*
-        int state = 0;
-        for (int idx = 0; idx < spanValue.Length; idx++){
-            if (state == 0) {
-                if (char.IsWhiteSpace(spanValue[idx])) {
-                    //spanValue = spanValue.Slice(idx);
-                    continue;
-                }
-                if (spanValue[idx] == '§') {
-                    state = 1;
-                    continue;
-                }
-                state = -1;
-                break;
-            }
-            if (state == 1) {
-                if (spanValue[idx] == '>') {
-                    state = 3;
-                    continue;
-                }
-                state = 2;
-            }
-            if (state == 2 || state == 3) {
-                if (char.IsWhiteSpace(spanValue[idx])) {
-                    continue;
-                }
-            }
-            if (state == 2) { 
-            }
-        }
-        */
-
-        //var result = new MatchInfo(value, isCommand, arr);
-
-    }
-}
-
-public ref struct Lexer {
-    public readonly ReadOnlySpan<char> ParagraphGreater = "§>".AsSpan();
-    public readonly ReadOnlySpan<char> Paragraph = "§".AsSpan();
-    public readonly ReadOnlySpan<char> Hash = "#".AsSpan();
-    public readonly ReadOnlySpan<char> WhitespaceNewLine = " \t\r\n".AsSpan();
-    public readonly ReadOnlySpan<char> ParagraphNewLine = "§\r\n".AsSpan();
-    public readonly ReadOnlySpan<char> ParagraphHashNewLine = "§#\r\n".AsSpan();
-    public readonly ReadOnlySpan<char> NewLine = "\r\n".AsSpan();
-    public readonly ReadOnlySpan<char> TabSpace = " \t".AsSpan();
-    public Lexer() { }
-
-    public bool IsParagraphStart(ref ReadOnlySpan<char> spanValue, ref int count) {
-        if (spanValue.StartsWith(this.Paragraph)) {
-            if ((spanValue.Length > 2)
-                && char.IsWhiteSpace(spanValue[1])) {
-                spanValue = spanValue.Slice(2);
-                count += 2;
-                this.TrimStart(ref spanValue, ref count);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public bool IsParagraphCommandStart(ref ReadOnlySpan<char> spanValue, ref int count) {
-        if (spanValue.StartsWith(this.ParagraphGreater)) {
-            if ((spanValue.Length > 3)
-                && char.IsWhiteSpace(spanValue[2])) {
-                spanValue = spanValue.Slice(3);
-                count += 3;
-                this.TrimStart(ref spanValue, ref count);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public int IndexOfWhitespace(ref ReadOnlySpan<char> spanValue) {
-        return spanValue.IndexOfAny(WhitespaceNewLine);
-    }
-
-    public int IndexOfParagraph(ref ReadOnlySpan<char> spanValue) {
-        return spanValue.IndexOfAny(ParagraphNewLine);
-    }
-
-    public int IndexOfParagraphHash(ref ReadOnlySpan<char> spanValue) {
-        return spanValue.IndexOfAny(ParagraphHashNewLine);
-    }
-
-    public int IndexOfNewLine(ref ReadOnlySpan<char> spanValue) {
-        int idx = spanValue.IndexOfAny(NewLine);
-        if (idx >= 0) { return idx; }
-        return spanValue.Length;
-    }
-
-    public void TrimStart(ref ReadOnlySpan<char> spanValue, ref int count) {
-        int idx = 0;
-        int lastFound = -1;
-        for (; idx < spanValue.Length; idx++) {
-            if (spanValue[idx] == ' ' || spanValue[idx] == '\t') {
-                lastFound = idx;
-                continue;
-            }
-            break;
-        }
-        if (lastFound >= 0) {
-            spanValue = spanValue.Slice(lastFound);
-            count += (lastFound + 1);
-        }
-    }
-
-    public bool Eat(ReadOnlySpan<char> expected, ref ReadOnlySpan<char> spanValue, ref int count) {
-        if (spanValue.StartsWith(expected)) {
-            spanValue = spanValue.Slice(expected.Length);
-            count += expected.Length;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public ReadOnlySpan<char> Forward(int length, ref ReadOnlySpan<char> spanValue, ref int count) {
-        var result = spanValue[0..length];
-        spanValue=spanValue.Slice(length);
-        count += length;
-        return result;
     }
 }

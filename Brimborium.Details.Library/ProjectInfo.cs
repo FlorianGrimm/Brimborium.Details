@@ -6,7 +6,16 @@ public record ProjectInfo(
     string Language,
     FileName FolderPath
 ) {
-    public List<DocumentInfo> Documents { get; set; } = new List<DocumentInfo>();
+    public List<FileName> LstDocumentFileName { get; set; } = new();
+
+    public List<DocumentInfo> LstDocument { get; set; } = new();
+    
+    public List<TypescriptDocumentInfo> LstTypescriptDocumentInfo { get; set; } = new();
+
+    public List<MarkdownDocumentInfo> LstMarkdownDocumentInfo { get; set; } = new();
+    
+    public List<CSharpDocumentInfo> LstCSharpDocumentInfo { get; set; } = new();
+
     public ProjectInfoPersitence PreSave(FileName detailsRoot) {
         return new ProjectInfoPersitence(
             this.Name,

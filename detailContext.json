@@ -1,0 +1,1281 @@
+{
+  "SolutionInfo": {
+    "DetailsRoot": {
+      "RelativePath": null
+    },
+    "SolutionFile": {
+      "RelativePath": "Brimborium.Details.sln"
+    },
+    "DetailsFolder": {
+      "RelativePath": "details"
+    },
+    "ListMainProjectName": [],
+    "ListMainProjectInfo": [],
+    "ListProject": []
+  },
+  "ProjectInfoByFilePath": {
+    "C:\\github.com\\FlorianGrimm\\Brimborium.Details\\Brimborium.Details\\Brimborium.Details.csproj": {
+      "Name": "Brimborium.Details",
+      "FilePath": {
+        "RelativePath": "Brimborium.Details/Brimborium.Details.csproj"
+      },
+      "Language": "CSharp",
+      "FolderPath": {
+        "RelativePath": "Brimborium.Details"
+      },
+      "LstDocumentFileName": [
+        {
+          "RelativePath": "GlobalUsings.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/Brimborium.Details.AssemblyInfo.cs"
+        },
+        {
+          "RelativePath": "Program.cs"
+        }
+      ],
+      "LstDocument": [],
+      "LstTypescriptDocumentInfo": [],
+      "LstMarkdownDocumentInfo": [],
+      "LstCSharpDocumentInfo": [
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details/GlobalUsings.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details/obj/Debug/net7.0/Brimborium.Details.AssemblyInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details/Program.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details/Program.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details/Program.cs#",
+                  "FilePath": "Brimborium.Details/Program.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 33,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 36,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "https://github.com/mrlacey/CommentLinks",
+                "Line": 1,
+                "IsCommand": false,
+                "MatchLength": 3
+              },
+              "CSContext": {
+                "FullName": "global::Brimborium.Details.Program",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.Program",
+                "Method": null
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "C:\\github.com\\FlorianGrimm\\Brimborium.Details\\Brimborium.Details.Library\\Brimborium.Details.Library.csproj": {
+      "Name": "Brimborium.Details.Library",
+      "FilePath": {
+        "RelativePath": "Brimborium.Details.Library/Brimborium.Details.Library.csproj"
+      },
+      "Language": "CSharp",
+      "FolderPath": {
+        "RelativePath": "Brimborium.Details.Library"
+      },
+      "LstDocumentFileName": [
+        {
+          "RelativePath": "AppSettings.cs"
+        },
+        {
+          "RelativePath": "CommandShowList.cs"
+        },
+        {
+          "RelativePath": "Contracts.cs"
+        },
+        {
+          "RelativePath": "CSharpService.cs"
+        },
+        {
+          "RelativePath": "DetailContext.cs"
+        },
+        {
+          "RelativePath": "DocumentInfo.cs"
+        },
+        {
+          "RelativePath": "FileName.cs"
+        },
+        {
+          "RelativePath": "FileSystem.cs"
+        },
+        {
+          "RelativePath": "GlobalUsings.cs"
+        },
+        {
+          "RelativePath": "Lexer.cs"
+        },
+        {
+          "RelativePath": "ListBlockReplacementFinder.cs"
+        },
+        {
+          "RelativePath": "MarkdownDocumentWriter.cs"
+        },
+        {
+          "RelativePath": "MarkdownService.cs"
+        },
+        {
+          "RelativePath": "MatchUtility.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/Brimborium.Details.Library.AssemblyInfo.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/Brimborium.Details.Library.GlobalUsings.g.cs"
+        },
+        {
+          "RelativePath": "ParallelUtility.cs"
+        },
+        {
+          "RelativePath": "PathInfo.cs"
+        },
+        {
+          "RelativePath": "ProjectInfo.cs"
+        },
+        {
+          "RelativePath": "SolutionAnalyzer.cs"
+        },
+        {
+          "RelativePath": "SolutionInfo.cs"
+        },
+        {
+          "RelativePath": "SolutionInfoUtility.cs"
+        },
+        {
+          "RelativePath": "StringSplice.cs"
+        },
+        {
+          "RelativePath": "SubString.cs"
+        },
+        {
+          "RelativePath": "TypeScriptService.cs"
+        },
+        {
+          "RelativePath": "WatchService.cs"
+        }
+      ],
+      "LstDocument": [],
+      "LstTypescriptDocumentInfo": [],
+      "LstMarkdownDocumentInfo": [],
+      "LstCSharpDocumentInfo": [
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/AppSettings.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/CommandShowList.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/CommandShowList.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/CommandShowList.cs#",
+                  "FilePath": "Brimborium.Details.Library/CommandShowList.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 759,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 760,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "",
+                "Line": 24,
+                "IsCommand": false,
+                "MatchLength": 1
+              },
+              "CSContext": {
+                "FullName": "ExecuteAsync",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.CommandShowList",
+                "Method": "ExecuteAsync"
+              }
+            }
+          ]
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/Contracts.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/CSharpService.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/CSharpService.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/CSharpService.cs#",
+                  "FilePath": "Brimborium.Details.Library/CSharpService.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 23483,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 23484,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "",
+                "Line": 469,
+                "IsCommand": false,
+                "MatchLength": 1
+              },
+              "CSContext": {
+                "FullName": "WriteDetail",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.CSharpService",
+                "Method": "WriteDetail"
+              }
+            }
+          ]
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/DetailContext.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/DetailContext.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/DetailContext.cs#",
+                  "FilePath": "Brimborium.Details.Library/DetailContext.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 35,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 38,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "test",
+                "Line": 2,
+                "IsCommand": false,
+                "MatchLength": 3
+              },
+              "CSContext": {
+                "FullName": "global::Brimborium.Details.DetailContext",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.DetailContext",
+                "Method": null
+              }
+            }
+          ]
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/DocumentInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/FileName.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/FileSystem.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/GlobalUsings.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/Lexer.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/ListBlockReplacementFinder.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/MarkdownDocumentWriter.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/MarkdownService.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/MarkdownService.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/MarkdownService.cs#",
+                  "FilePath": "Brimborium.Details.Library/MarkdownService.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 10975,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 10976,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "",
+                "Line": 228,
+                "IsCommand": false,
+                "MatchLength": 1
+              },
+              "CSContext": {
+                "FullName": "WriteDetail",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.MarkdownService",
+                "Method": "WriteDetail"
+              }
+            }
+          ]
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/MatchUtility.cs"
+          },
+          "LstConsumes": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/MatchUtility.cs"
+              },
+              "Match": {
+                "Kind": 3,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/MatchUtility.cs#",
+                  "FilePath": "Brimborium.Details.Library/MatchUtility.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 3295,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 3297,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Command": "Command_Path\u00A7",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "",
+                "Line": 78,
+                "IsCommand": true,
+                "MatchLength": 2
+              },
+              "CSContext": {
+                "FullName": "parseMatch",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.MatchUtility",
+                "Method": "parseMatch"
+              }
+            }
+          ],
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/MatchUtility.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/MatchUtility.cs#",
+                  "FilePath": "Brimborium.Details.Library/MatchUtility.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 5574,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 5577,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "_Path",
+                  "FilePath": "_Path"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "Comment",
+                "Line": 131,
+                "IsCommand": false,
+                "MatchLength": 3
+              },
+              "CSContext": {
+                "FullName": "parseMatch",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.MatchUtility",
+                "Method": "parseMatch"
+              }
+            }
+          ]
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/obj/Debug/net7.0/Brimborium.Details.Library.AssemblyInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/obj/Debug/net7.0/Brimborium.Details.Library.GlobalUsings.g.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/ParallelUtility.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/PathInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/ProjectInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/SolutionAnalyzer.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/SolutionAnalyzer.cs"
+              },
+              "Match": {
+                "Kind": 2,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/SolutionAnalyzer.cs#",
+                  "FilePath": "Brimborium.Details.Library/SolutionAnalyzer.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 1477,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 1478,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Comment": "",
+                "Line": 35,
+                "IsCommand": false,
+                "MatchLength": 1
+              },
+              "CSContext": {
+                "FullName": "AnalyzeAsync",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.SolutionAnalyzer",
+                "Method": "AnalyzeAsync"
+              }
+            }
+          ]
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/SolutionInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/SolutionInfoUtility.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/StringSplice.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/SubString.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/TypeScriptService.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Library/WatchService.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        }
+      ]
+    },
+    "C:\\github.com\\FlorianGrimm\\Brimborium.Details\\Brimborium.Details.Web\\Brimborium.Details.Web.csproj": {
+      "Name": "Brimborium.Details.Web",
+      "FilePath": {
+        "RelativePath": "Brimborium.Details.Web/Brimborium.Details.Web.csproj"
+      },
+      "Language": "CSharp",
+      "FolderPath": {
+        "RelativePath": "Brimborium.Details.Web"
+      },
+      "LstDocumentFileName": [
+        {
+          "RelativePath": "Controller/IMinimalAPIController.cs"
+        },
+        {
+          "RelativePath": "Controller/MarkdownController.cs"
+        },
+        {
+          "RelativePath": "GlobalUsings.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/Brimborium.Details.Web.AssemblyInfo.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/Brimborium.Details.Web.GlobalUsings.g.cs"
+        },
+        {
+          "RelativePath": "obj/Debug/net7.0/Brimborium.Details.Web.RazorAssemblyInfo.cs"
+        },
+        {
+          "RelativePath": "Pages/Error.cshtml.cs"
+        },
+        {
+          "RelativePath": "Pages/Index.cshtml.cs"
+        },
+        {
+          "RelativePath": "Pages/Privacy.cshtml.cs"
+        },
+        {
+          "RelativePath": "Program.cs"
+        }
+      ],
+      "LstDocument": [],
+      "LstTypescriptDocumentInfo": [],
+      "LstMarkdownDocumentInfo": [],
+      "LstCSharpDocumentInfo": [
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/Controller/IMinimalAPIController.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/Controller/MarkdownController.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/GlobalUsings.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/obj/Debug/net7.0/.NETCoreApp,Version=v7.0.AssemblyAttributes.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/obj/Debug/net7.0/Brimborium.Details.Web.AssemblyInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/obj/Debug/net7.0/Brimborium.Details.Web.GlobalUsings.g.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/obj/Debug/net7.0/Brimborium.Details.Web.RazorAssemblyInfo.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/Pages/Error.cshtml.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/Pages/Index.cshtml.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/Pages/Privacy.cshtml.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "Brimborium.Details.Web/Program.cs"
+          },
+          "LstConsumes": null,
+          "LstProvides": null
+        }
+      ]
+    },
+    "C:\\github.com\\FlorianGrimm\\Brimborium.Details\\details\\details.csproj": {
+      "Name": "Details",
+      "FilePath": {
+        "RelativePath": "details.csproj"
+      },
+      "Language": "Markdown",
+      "FolderPath": {
+        "RelativePath": "details"
+      },
+      "LstDocumentFileName": [],
+      "LstDocument": [],
+      "LstTypescriptDocumentInfo": [],
+      "LstMarkdownDocumentInfo": [
+        {
+          "FileName": {
+            "RelativePath": "details/Syntax-Marker.md"
+          },
+          "DetailsRelativePath": "Syntax-Marker.md",
+          "LstHeading": [
+            "#/Syntax Marker",
+            "#/Syntax Marker/Parse"
+          ],
+          "LstConsumes": null,
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "details/Syntax-Marker.md"
+              },
+              "Match": {
+                "Kind": 1,
+                "MatchPath": {
+                  "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker",
+                  "FilePath": "details/Syntax-Marker.md"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 2,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 4,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker",
+                  "FilePath": "details/Syntax-Marker.md"
+                },
+                "Comment": "",
+                "Line": 0,
+                "IsCommand": false,
+                "MatchLength": 2
+              },
+              "CSContext": null
+            },
+            {
+              "FilePath": {
+                "RelativePath": "details/Syntax-Marker.md"
+              },
+              "Match": {
+                "Kind": 1,
+                "MatchPath": {
+                  "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker/Parse",
+                  "FilePath": "details/Syntax-Marker.md"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 22,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 26,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker/Parse",
+                  "FilePath": "details/Syntax-Marker.md"
+                },
+                "Comment": "",
+                "Line": 0,
+                "IsCommand": false,
+                "MatchLength": 4
+              },
+              "CSContext": null
+            }
+          ],
+          "LstReplacementFinder": null
+        },
+        {
+          "FileName": {
+            "RelativePath": "details/todo.md"
+          },
+          "DetailsRelativePath": "todo.md",
+          "LstHeading": [
+            "#/TODO"
+          ],
+          "LstConsumes": [
+            {
+              "FilePath": {
+                "RelativePath": "details/todo.md"
+              },
+              "Match": {
+                "Kind": 3,
+                "MatchPath": {
+                  "LogicalPath": "details/todo.md#",
+                  "FilePath": "details/todo.md"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 10,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 12,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "Show-List",
+                "Anchor": {
+                  "LogicalPath": "details/todo.md#/TODO",
+                  "FilePath": "details/todo.md"
+                },
+                "Comment": "",
+                "Line": 2,
+                "IsCommand": true,
+                "MatchLength": 2
+              },
+              "CSContext": null
+            }
+          ],
+          "LstProvides": [
+            {
+              "FilePath": {
+                "RelativePath": "details/todo.md"
+              },
+              "Match": {
+                "Kind": 1,
+                "MatchPath": {
+                  "LogicalPath": "details/todo.md#/TODO",
+                  "FilePath": "details/todo.md"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 2,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 5,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "details/todo.md#/TODO",
+                  "FilePath": "details/todo.md"
+                },
+                "Comment": "",
+                "Line": 0,
+                "IsCommand": false,
+                "MatchLength": 3
+              },
+              "CSContext": null
+            }
+          ],
+          "LstReplacementFinder": [
+            {
+              "Command": {},
+              "SourceCodeMatch": {
+                "FilePath": {
+                  "RelativePath": "details/todo.md"
+                },
+                "Match": {
+                  "Kind": 3,
+                  "MatchPath": {
+                    "LogicalPath": "details/todo.md#",
+                    "FilePath": "details/todo.md"
+                  },
+                  "MatchRange": {
+                    "Start": {
+                      "Value": 10,
+                      "IsFromEnd": false
+                    },
+                    "End": {
+                      "Value": 12,
+                      "IsFromEnd": false
+                    }
+                  },
+                  "Path": {
+                    "LogicalPath": "todo.md",
+                    "FilePath": "todo.md"
+                  },
+                  "Command": "Show-List",
+                  "Anchor": {
+                    "LogicalPath": "details/todo.md#/TODO",
+                    "FilePath": "details/todo.md"
+                  },
+                  "Comment": "",
+                  "Line": 2,
+                  "IsCommand": true,
+                  "MatchLength": 2
+                },
+                "CSContext": null
+              }
+            }
+          ]
+        }
+      ],
+      "LstCSharpDocumentInfo": []
+    }
+  },
+  "DetailsProject": {
+    "Name": "Details",
+    "FilePath": {
+      "RelativePath": "details.csproj"
+    },
+    "Language": "Markdown",
+    "FolderPath": {
+      "RelativePath": "details"
+    },
+    "LstDocumentFileName": [],
+    "LstDocument": [],
+    "LstTypescriptDocumentInfo": [],
+    "LstMarkdownDocumentInfo": [
+      {
+        "FileName": {
+          "RelativePath": "details/Syntax-Marker.md"
+        },
+        "DetailsRelativePath": "Syntax-Marker.md",
+        "LstHeading": [
+          "#/Syntax Marker",
+          "#/Syntax Marker/Parse"
+        ],
+        "LstConsumes": null,
+        "LstProvides": [
+          {
+            "FilePath": {
+              "RelativePath": "details/Syntax-Marker.md"
+            },
+            "Match": {
+              "Kind": 1,
+              "MatchPath": {
+                "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker",
+                "FilePath": "details/Syntax-Marker.md"
+              },
+              "MatchRange": {
+                "Start": {
+                  "Value": 2,
+                  "IsFromEnd": false
+                },
+                "End": {
+                  "Value": 4,
+                  "IsFromEnd": false
+                }
+              },
+              "Path": {
+                "LogicalPath": "",
+                "FilePath": ""
+              },
+              "Command": "",
+              "Anchor": {
+                "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker",
+                "FilePath": "details/Syntax-Marker.md"
+              },
+              "Comment": "",
+              "Line": 0,
+              "IsCommand": false,
+              "MatchLength": 2
+            },
+            "CSContext": null
+          },
+          {
+            "FilePath": {
+              "RelativePath": "details/Syntax-Marker.md"
+            },
+            "Match": {
+              "Kind": 1,
+              "MatchPath": {
+                "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker/Parse",
+                "FilePath": "details/Syntax-Marker.md"
+              },
+              "MatchRange": {
+                "Start": {
+                  "Value": 22,
+                  "IsFromEnd": false
+                },
+                "End": {
+                  "Value": 26,
+                  "IsFromEnd": false
+                }
+              },
+              "Path": {
+                "LogicalPath": "",
+                "FilePath": ""
+              },
+              "Command": "",
+              "Anchor": {
+                "LogicalPath": "details/Syntax-Marker.md#/Syntax Marker/Parse",
+                "FilePath": "details/Syntax-Marker.md"
+              },
+              "Comment": "",
+              "Line": 0,
+              "IsCommand": false,
+              "MatchLength": 4
+            },
+            "CSContext": null
+          }
+        ],
+        "LstReplacementFinder": null
+      },
+      {
+        "FileName": {
+          "RelativePath": "details/todo.md"
+        },
+        "DetailsRelativePath": "todo.md",
+        "LstHeading": [
+          "#/TODO"
+        ],
+        "LstConsumes": [
+          {
+            "FilePath": {
+              "RelativePath": "details/todo.md"
+            },
+            "Match": {
+              "Kind": 3,
+              "MatchPath": {
+                "LogicalPath": "details/todo.md#",
+                "FilePath": "details/todo.md"
+              },
+              "MatchRange": {
+                "Start": {
+                  "Value": 10,
+                  "IsFromEnd": false
+                },
+                "End": {
+                  "Value": 12,
+                  "IsFromEnd": false
+                }
+              },
+              "Path": {
+                "LogicalPath": "todo.md",
+                "FilePath": "todo.md"
+              },
+              "Command": "Show-List",
+              "Anchor": {
+                "LogicalPath": "details/todo.md#/TODO",
+                "FilePath": "details/todo.md"
+              },
+              "Comment": "",
+              "Line": 2,
+              "IsCommand": true,
+              "MatchLength": 2
+            },
+            "CSContext": null
+          }
+        ],
+        "LstProvides": [
+          {
+            "FilePath": {
+              "RelativePath": "details/todo.md"
+            },
+            "Match": {
+              "Kind": 1,
+              "MatchPath": {
+                "LogicalPath": "details/todo.md#/TODO",
+                "FilePath": "details/todo.md"
+              },
+              "MatchRange": {
+                "Start": {
+                  "Value": 2,
+                  "IsFromEnd": false
+                },
+                "End": {
+                  "Value": 5,
+                  "IsFromEnd": false
+                }
+              },
+              "Path": {
+                "LogicalPath": "",
+                "FilePath": ""
+              },
+              "Command": "",
+              "Anchor": {
+                "LogicalPath": "details/todo.md#/TODO",
+                "FilePath": "details/todo.md"
+              },
+              "Comment": "",
+              "Line": 0,
+              "IsCommand": false,
+              "MatchLength": 3
+            },
+            "CSContext": null
+          }
+        ],
+        "LstReplacementFinder": [
+          {
+            "Command": {},
+            "SourceCodeMatch": {
+              "FilePath": {
+                "RelativePath": "details/todo.md"
+              },
+              "Match": {
+                "Kind": 3,
+                "MatchPath": {
+                  "LogicalPath": "details/todo.md#",
+                  "FilePath": "details/todo.md"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 10,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 12,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "todo.md",
+                  "FilePath": "todo.md"
+                },
+                "Command": "Show-List",
+                "Anchor": {
+                  "LogicalPath": "details/todo.md#/TODO",
+                  "FilePath": "details/todo.md"
+                },
+                "Comment": "",
+                "Line": 2,
+                "IsCommand": true,
+                "MatchLength": 2
+              },
+              "CSContext": null
+            }
+          }
+        ]
+      }
+    ],
+    "LstCSharpDocumentInfo": []
+  }
+}

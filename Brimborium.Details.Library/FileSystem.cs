@@ -6,6 +6,8 @@ public interface IFileSystem {
     Task<string[]> ReadAllLinesAsync(FileName path, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken));
     
     Task<string> ReadAllTextAsync(FileName path, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken));
+
+    Task WriteAllTextAsync(FileName path, Encoding encoding, string content, CancellationToken cancellationToken = default);
 }
 
 [Brimborium.Registrator.Singleton]
@@ -38,5 +40,14 @@ public class FileSystem : IFileSystem {
             path.AbsolutePath ?? throw new InvalidOperationException("path.AbsolutePath is null"), 
             encoding, 
             cancellationToken);
+    }
+
+    public async Task WriteAllTextAsync(FileName path, Encoding encoding, string content, CancellationToken cancellationToken = default) {
+        await System.IO.File.WriteAllTextAsync(
+            path.AbsolutePath ?? throw new InvalidOperationException("path.AbsolutePath is null"),
+            content,
+            encoding,
+            cancellationToken
+            );
     }
 }

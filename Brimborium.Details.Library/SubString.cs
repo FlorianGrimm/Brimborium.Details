@@ -1,7 +1,11 @@
-﻿namespace Brimborium.Details;
+﻿//using System.Diagnostics.CodeAnalysis;
+
+namespace Brimborium.Details;
 
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public struct SubString {
+    public static SubString Empty => new SubString(string.Empty);
+
     private readonly string _Text = String.Empty;
     private readonly Range _Range;
 
@@ -54,7 +58,7 @@ public struct SubString {
     public Range Range => _Range;
 
     public int Start => this.Range.Start.Value;
-    
+
     public int Length {
         get {
             var (_, length) = this.Range.GetOffsetAndLength(this._Text.Length);
@@ -63,11 +67,18 @@ public struct SubString {
     }
 
     public int End => this.Range.End.Value;
-    
-    override public string ToString()
-            => this._Text[this.Range];
 
-    public ReadOnlySpan<char> AsSpan() 
+    public override string ToString() {
+        var (offset,length)=this._Range.GetOffsetAndLength(this._Text.Length);
+        if (length == 0) { return string.Empty; }
+        if (offset == 0 && length == this._Text.Length) {
+            return this._Text;
+        } else {
+            return this._Text.Substring(offset, length);
+        }
+    }
+
+    public ReadOnlySpan<char> AsSpan()
         => this._Text.AsSpan()[this.Range];
 
     private string GetDebuggerDisplay() {
@@ -75,9 +86,37 @@ public struct SubString {
         if (this.Length < 32) {
             return $"{this._Text.Substring(this.Start)}[{this.Range}]";
         }
-        return  $"{this._Text.Substring(this.Start, 32)}...[{this.Range}]";
+        return $"{this._Text.Substring(this.Start, 32)}...[{this.Range}]";
+    }
+
+    public bool IsNullOrEmpty() {
+        return this._Text is null || this.Length == 0;
+    }
+
+    public bool IsNullOrWhiteSpace() {
+        if (this._Text == null) return true;
+        var (offset, length) = this._Range.GetOffsetAndLength(this._Text.Length);
+
+        for (int idx = 0; idx < length; idx++) {
+            if (!char.IsWhiteSpace(this._Text[offset + idx])) { return false; }
+        }
+
+        return true;
     }
 }
+public static class SubStringExtension {
+    public static SubString AsSubString(this string value) {
+        return new SubString(value);
+    }
+    public static SubString AsSubString(this string value, int pos) {
+        return new SubString(value, new Range(pos, value.Length));
+    }
+
+    public static SubString AsSubString(this string value, int pos, int length) {
+        return new SubString(value, new Range(pos, pos + length));
+    }
+}
+
 #if false
 public abstract class StringSpliceBase {
     protected StringSpliceBase(string text) {
