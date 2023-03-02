@@ -72,12 +72,12 @@ public class CommandShowList : IMatchCommand {
                 if (match.SourceCodeMatch.FilePath.RootFolder == markdownDocumentWriter.DetailContext.SolutionInfo.DetailsFolder) {
                     sb.Append("details://").Append(match.SourceCodeMatch.FilePath.RelativePath);
                     if (match.SourceCodeMatch.Match.Line > 0) {
-                        sb.Append("#:").Append(match.SourceCodeMatch.Match.Line);
+                        sb.Append("#").Append(match.SourceCodeMatch.Match.Line);
                     }
                 } else {
-                    sb.Append("details-code://").Append(match.SourceCodeMatch.FilePath.RelativePath);
+                    sb.Append("detailscode://").Append(match.SourceCodeMatch.FilePath.RelativePath);
                     if (match.SourceCodeMatch.Match.Line > 0) {
-                        sb.Append("#:").Append(match.SourceCodeMatch.Match.Line);
+                        sb.Append("#").Append(match.SourceCodeMatch.Match.Line);
                     }
                 }
                 sb.AppendLine();

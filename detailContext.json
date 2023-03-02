@@ -193,12 +193,6 @@
           "RelativePath": "SolutionInfoUtility.cs"
         },
         {
-          "RelativePath": "StringSplice.cs"
-        },
-        {
-          "RelativePath": "SubString.cs"
-        },
-        {
           "RelativePath": "TypeScriptService.cs"
         },
         {
@@ -660,20 +654,6 @@
         {
           "FileName": {
             "RelativePath": "Brimborium.Details.Library/SolutionInfoUtility.cs"
-          },
-          "LstConsumes": null,
-          "LstProvides": null
-        },
-        {
-          "FileName": {
-            "RelativePath": "Brimborium.Details.Library/StringSplice.cs"
-          },
-          "LstConsumes": null,
-          "LstProvides": null
-        },
-        {
-          "FileName": {
-            "RelativePath": "Brimborium.Details.Library/SubString.cs"
           },
           "LstConsumes": null,
           "LstProvides": null

@@ -33,3 +33,5 @@ global using global::Microsoft.CodeAnalysis.FindSymbols;
 global using global::Microsoft.Extensions.Logging;
 
 global using global::Brimborium.Details;
+global using global::Brimborium.Text;
+global using global::Brimborium.Registrator;

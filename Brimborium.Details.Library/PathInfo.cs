@@ -5,19 +5,46 @@ public class PathInfo : IEquatable<PathInfo> {
 
     private static char Slash = '/';
     private static char Separator = '#';
+    private static char[] ArraySeparator = new char[] { '#' };
     public static PathInfo? _Empty;
     public static PathInfo Empty => _Empty ??= new PathInfo(string.Empty, string.Empty, string.Empty);
 
     public static PathInfo Parse(string logicalPath) {
-        var (filename, partContent) = Split(logicalPath);
+        var (filename, partLine, partContent) = Split(logicalPath);
         return PathInfo.Create(logicalPath.AsSubString(), filename, partContent);
 
-        static (SubString filename, SubString partContent) Split(string logicalPath) {
-            var pos = logicalPath.IndexOf(Separator);
-            if (pos < 0) {
-                return (logicalPath.AsSubString(), SubString.Empty);
+        static (SubString filename, SubString partLine, SubString partContent) Split(string logicalPath) {
+            var logicalPathSubString = logicalPath.AsSubString();
+            var (filePath,tail) = logicalPathSubString.SplitInto(ArraySeparator);
+            if (tail.IsNullOrEmpty()) {
+                return (filePath, SubString.Empty, SubString.Empty);
+            }
+            var (part1, part2) = logicalPathSubString.SplitInto(ArraySeparator);
+            if (!part1.IsNullOrEmpty() && !part2.IsNullOrEmpty()) {
+                return (filePath, part1, part2);
+            }
+
+            bool matchNumber = true;
+            {
+                var spanPart1 = part1.AsSpan();
+                int idx = 0;
+                for (; idx < spanPart1.Length; idx++) {
+                    if (char.IsWhiteSpace(spanPart1[idx])) { continue; }
+                    break;
+                }
+                for (; idx < spanPart1.Length; idx++) {
+                    if (char.IsAsciiDigit(spanPart1[idx])) { continue; }
+                }
+                for (; idx < spanPart1.Length; idx++) {
+                    if (char.IsWhiteSpace(spanPart1[idx])) { continue; }
+                }
+                matchNumber = (idx + 1 == spanPart1.Length);
+            }
+
+            if (matchNumber) {
+                return (filePath, part1, SubString.Empty);
             } else {
-                return (logicalPath.AsSubString(0, pos), logicalPath.AsSubString(pos + 1));
+                return (filePath, SubString.Empty, part1);
             }
         }
     }
@@ -66,7 +93,7 @@ public class PathInfo : IEquatable<PathInfo> {
         string filenameValue = spanFilename.ToString();
         string contentPathValue = spanContentPath.ToString();
         return new PathInfo(
-            logicalPathValue, filenameValue, contentPathValue, 
+            logicalPathValue, filenameValue, contentPathValue,
             GetContentLevel(contentPathValue), GetContentPathNormalized(contentPathValue)
             );
     }
@@ -96,8 +123,8 @@ public class PathInfo : IEquatable<PathInfo> {
         string logicalPath,
         string filename,
         string contentPath)
-        : this(logicalPath, filename, contentPath, 
-              GetContentLevel(contentPath), 
+        : this(logicalPath, filename, contentPath,
+              GetContentLevel(contentPath),
               GetContentPathNormalized(contentPath)) {
     }
 
