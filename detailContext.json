@@ -80,11 +80,11 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 33,
+                    "Value": 34,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 36,
+                    "Value": 87,
                     "IsFromEnd": false
                   }
                 },
@@ -97,10 +97,10 @@
                   "LogicalPath": "",
                   "FilePath": ""
                 },
-                "Comment": "https://github.com/mrlacey/CommentLinks",
+                "Comment": "https://github.com/mrlacey/CommentLinks \u00A7",
                 "Line": 1,
                 "IsCommand": false,
-                "MatchLength": 3
+                "MatchLength": 53
               },
               "CSContext": {
                 "FullName": "global::Brimborium.Details.Program",
@@ -149,9 +149,6 @@
         },
         {
           "RelativePath": "GlobalUsings.cs"
-        },
-        {
-          "RelativePath": "Lexer.cs"
         },
         {
           "RelativePath": "ListBlockReplacementFinder.cs"
@@ -228,11 +225,11 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 759,
+                    "Value": 735,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 760,
+                    "Value": 744,
                     "IsFromEnd": false
                   }
                 },
@@ -246,9 +243,9 @@
                   "FilePath": ""
                 },
                 "Comment": "",
-                "Line": 24,
+                "Line": 22,
                 "IsCommand": false,
-                "MatchLength": 1
+                "MatchLength": 9
               },
               "CSContext": {
                 "FullName": "ExecuteAsync",
@@ -284,11 +281,11 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 23483,
+                    "Value": 23489,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 23484,
+                    "Value": 23498,
                     "IsFromEnd": false
                   }
                 },
@@ -304,7 +301,7 @@
                 "Comment": "",
                 "Line": 469,
                 "IsCommand": false,
-                "MatchLength": 1
+                "MatchLength": 9
               },
               "CSContext": {
                 "FullName": "WriteDetail",
@@ -333,11 +330,11 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 35,
+                    "Value": 36,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 38,
+                    "Value": 54,
                     "IsFromEnd": false
                   }
                 },
@@ -350,10 +347,10 @@
                   "LogicalPath": "",
                   "FilePath": ""
                 },
-                "Comment": "test",
+                "Comment": "test \u00A7",
                 "Line": 2,
                 "IsCommand": false,
-                "MatchLength": 3
+                "MatchLength": 18
               },
               "CSContext": {
                 "FullName": "global::Brimborium.Details.DetailContext",
@@ -394,13 +391,6 @@
         },
         {
           "FileName": {
-            "RelativePath": "Brimborium.Details.Library/Lexer.cs"
-          },
-          "LstConsumes": null,
-          "LstProvides": null
-        },
-        {
-          "FileName": {
             "RelativePath": "Brimborium.Details.Library/ListBlockReplacementFinder.cs"
           },
           "LstConsumes": null,
@@ -431,11 +421,11 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 10975,
+                    "Value": 10982,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 10976,
+                    "Value": 10991,
                     "IsFromEnd": false
                   }
                 },
@@ -451,7 +441,7 @@
                 "Comment": "",
                 "Line": 228,
                 "IsCommand": false,
-                "MatchLength": 1
+                "MatchLength": 9
               },
               "CSContext": {
                 "FullName": "WriteDetail",
@@ -479,17 +469,17 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 3295,
+                    "Value": 2864,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 3297,
+                    "Value": 2887,
                     "IsFromEnd": false
                   }
                 },
                 "Path": {
-                  "LogicalPath": "",
-                  "FilePath": ""
+                  "LogicalPath": "Brimborium.Details.Library/MatchUtility.cs#/Comment",
+                  "FilePath": "Brimborium.Details.Library/MatchUtility.cs"
                 },
                 "Command": "Command_Path\u00A7",
                 "Anchor": {
@@ -497,9 +487,9 @@
                   "FilePath": ""
                 },
                 "Comment": "",
-                "Line": 78,
+                "Line": 79,
                 "IsCommand": true,
-                "MatchLength": 2
+                "MatchLength": 23
               },
               "CSContext": {
                 "FullName": "parseMatch",
@@ -515,6 +505,47 @@
                 "RelativePath": "Brimborium.Details.Library/MatchUtility.cs"
               },
               "Match": {
+                "Kind": 1,
+                "MatchPath": {
+                  "LogicalPath": "Brimborium.Details.Library/MatchUtility.cs#",
+                  "FilePath": "Brimborium.Details.Library/MatchUtility.cs"
+                },
+                "MatchRange": {
+                  "Start": {
+                    "Value": 1871,
+                    "IsFromEnd": false
+                  },
+                  "End": {
+                    "Value": 1888,
+                    "IsFromEnd": false
+                  }
+                },
+                "Path": {
+                  "LogicalPath": "",
+                  "FilePath": ""
+                },
+                "Command": "",
+                "Anchor": {
+                  "LogicalPath": "Brimborium.Details.Library/MatchUtility.cs#/Anchor",
+                  "FilePath": "Brimborium.Details.Library/MatchUtility.cs"
+                },
+                "Comment": "Comment",
+                "Line": 54,
+                "IsCommand": false,
+                "MatchLength": 17
+              },
+              "CSContext": {
+                "FullName": "parseMatch",
+                "Namespace": "global::Brimborium.Details",
+                "Type": "global::Brimborium.Details.MatchUtility",
+                "Method": "parseMatch"
+              }
+            },
+            {
+              "FilePath": {
+                "RelativePath": "Brimborium.Details.Library/MatchUtility.cs"
+              },
+              "Match": {
                 "Kind": 2,
                 "MatchPath": {
                   "LogicalPath": "Brimborium.Details.Library/MatchUtility.cs#",
@@ -522,27 +553,27 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 5574,
+                    "Value": 4220,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 5577,
+                    "Value": 4234,
                     "IsFromEnd": false
                   }
                 },
                 "Path": {
-                  "LogicalPath": "_Path",
-                  "FilePath": "_Path"
+                  "LogicalPath": "_Path\u00A7Comment",
+                  "FilePath": "_Path\u00A7Comment"
                 },
                 "Command": "",
                 "Anchor": {
                   "LogicalPath": "",
                   "FilePath": ""
                 },
-                "Comment": "Comment",
-                "Line": 131,
+                "Comment": "",
+                "Line": 113,
                 "IsCommand": false,
-                "MatchLength": 3
+                "MatchLength": 14
               },
               "CSContext": {
                 "FullName": "parseMatch",
@@ -613,11 +644,11 @@
                 },
                 "MatchRange": {
                   "Start": {
-                    "Value": 1477,
+                    "Value": 1478,
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 1478,
+                    "Value": 1487,
                     "IsFromEnd": false
                   }
                 },
@@ -633,7 +664,7 @@
                 "Comment": "",
                 "Line": 35,
                 "IsCommand": false,
-                "MatchLength": 1
+                "MatchLength": 9
               },
               "CSContext": {
                 "FullName": "AnalyzeAsync",
@@ -925,13 +956,13 @@
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 12,
+                    "Value": 30,
                     "IsFromEnd": false
                   }
                 },
                 "Path": {
-                  "LogicalPath": "todo.md",
-                  "FilePath": "todo.md"
+                  "LogicalPath": "details/todo.md#/todo.md",
+                  "FilePath": "details/todo.md"
                 },
                 "Command": "Show-List",
                 "Anchor": {
@@ -941,7 +972,7 @@
                 "Comment": "",
                 "Line": 2,
                 "IsCommand": true,
-                "MatchLength": 2
+                "MatchLength": 20
               },
               "CSContext": null
             }
@@ -1003,13 +1034,13 @@
                       "IsFromEnd": false
                     },
                     "End": {
-                      "Value": 12,
+                      "Value": 30,
                       "IsFromEnd": false
                     }
                   },
                   "Path": {
-                    "LogicalPath": "todo.md",
-                    "FilePath": "todo.md"
+                    "LogicalPath": "details/todo.md#/todo.md",
+                    "FilePath": "details/todo.md"
                   },
                   "Command": "Show-List",
                   "Anchor": {
@@ -1019,7 +1050,7 @@
                   "Comment": "",
                   "Line": 2,
                   "IsCommand": true,
-                  "MatchLength": 2
+                  "MatchLength": 20
                 },
                 "CSContext": null
               }
@@ -1154,13 +1185,13 @@
                   "IsFromEnd": false
                 },
                 "End": {
-                  "Value": 12,
+                  "Value": 30,
                   "IsFromEnd": false
                 }
               },
               "Path": {
-                "LogicalPath": "todo.md",
-                "FilePath": "todo.md"
+                "LogicalPath": "details/todo.md#/todo.md",
+                "FilePath": "details/todo.md"
               },
               "Command": "Show-List",
               "Anchor": {
@@ -1170,7 +1201,7 @@
               "Comment": "",
               "Line": 2,
               "IsCommand": true,
-              "MatchLength": 2
+              "MatchLength": 20
             },
             "CSContext": null
           }
@@ -1232,13 +1263,13 @@
                     "IsFromEnd": false
                   },
                   "End": {
-                    "Value": 12,
+                    "Value": 30,
                     "IsFromEnd": false
                   }
                 },
                 "Path": {
-                  "LogicalPath": "todo.md",
-                  "FilePath": "todo.md"
+                  "LogicalPath": "details/todo.md#/todo.md",
+                  "FilePath": "details/todo.md"
                 },
                 "Command": "Show-List",
                 "Anchor": {
@@ -1248,7 +1279,7 @@
                 "Comment": "",
                 "Line": 2,
                 "IsCommand": true,
-                "MatchLength": 2
+                "MatchLength": 20
               },
               "CSContext": null
             }

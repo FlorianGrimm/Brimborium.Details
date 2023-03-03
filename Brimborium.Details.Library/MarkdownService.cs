@@ -122,7 +122,7 @@ public class MarkdownService {
 
                         if (inline is LiteralInline literalInline) {
                             var ownMatchPath = PathInfo.Create(documentInfo.FileName.RelativePath??string.Empty, string.Empty);
-                            var matchInfo = MatchUtility.parseMatch(literalInline.Content.ToString(), ownMatchPath, inline.Line, inline.Span.Start);
+                            var matchInfo = MatchUtility.parseMatch(literalInline.Content.ToString(), ownMatchPath, null, inline.Line, inline.Span.Start);
 
                             if (matchInfo is not null) {
                                 var heading = BuildHeading(lstCurrentHeadings);

@@ -318,7 +318,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             if (sourceCode.Contains('§')) {
                 foreach (System.Text.RegularExpressions.Match match in regexSimple.Matches(sourceCode)) {
                     var ownMatchPath = PathInfo.Create(documentInfo.FileName.RelativePath ?? string.Empty, string.Empty);
-                    var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath, 0, match.Index);
+                    var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath,"//", 0, match.Index);
                     if (matchInfo is null) { continue; }
 
                     var sourceCodeMatch = new SourceCodeMatch(

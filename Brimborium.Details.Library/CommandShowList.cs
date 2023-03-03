@@ -1,6 +1,4 @@
-﻿using Markdig.Syntax;
-
-namespace Brimborium.Details;
+﻿namespace Brimborium.Details;
 
 //
 [Brimborium.Registrator.Transient]

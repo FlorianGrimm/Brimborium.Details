@@ -1,232 +1,201 @@
-using System.Diagnostics.Metrics;
-using System.Drawing;
-using System.Xml.Linq;
-
 namespace Brimborium.Details;
 
 public static class MatchUtility {
-    private static readonly char[] arrCharParagraph = new char[] { '§' };
+    private static readonly string Paragraph = "§";
+    private static readonly string ParagraphGreater = "§>";
+    private static readonly string ParagraphHash = "§#";
+    private static readonly string DetailsProtocol = "details://";
+    private static readonly string DetailsCodeProtocol = "details-code://";
+    private static readonly string OpenSquareBrackets = "[";
+    private static readonly string CloseSquareBrackets = "]";
+    private static readonly string OpenRoundBrackets = "(";
+    private static readonly string CloseRoundBrackets = ")";
 
-    /*
-    public static MatchInfo? parseMatchIfMatches(string value) {
-        if (!value.Contains('§')) { return null; }
-        string normalized = value.TrimStart();
-        if (!normalized.StartsWith("§")) {
-            return null;
+    public static int IsWhitespaceNorNewLine(char value, int index) {
+        if ((value == ' ') || (value == '\t')) {
+            return 0;
         }
-        return parseMatch(normalized);
+        if ((value == '\r') || (value == '\\')) {
+            return -1;
+        }
+        return 1;
     }
 
-    private readonly static Regex _RegexParagraphPath = new Regex(
-        @"^[§](?<Path>[^>][^#§]{0,256})(?<Kind>[^§#]{0,64})(?<Anchor>[#][^§]{0,64})(?<Comment>[§][^§]{0,64})[§]?",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline);
+    public static int IsNotWhitespaceNorNewLine(char value, int index) {
+        if ((value == ' ') || (value == '\t')) {
+            return 1;
+        }
+        if ((value == '\r') || (value == '\\')) {
+            return -1;
+        }
+        return 0;
+    }
 
-    private readonly static Regex _RegexParagraphCommand = new Regex(
-        @"^[§][>](?<Command>[^#§]{0,256})(?<Kind>[^§#]{0,64})(?<Anchor>[#][^§]{0,64})(?<Comment>[§][^§]{0,64})[§]?",
-        RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.IgnoreCase | RegexOptions.Singleline);
-    */
-    /*
-     details
-     detailscode
-     */
+    public static int IsAnyThingButNewLine(char value, int index) {
+        if ((value == '\r') || (value == '\\')) {
+            return -1;
+        }
+        return 0;
+    }
+
     public static MatchInfo? parseMatch(
-        string value, 
+        StringSlice value,
         PathInfo ownMatchPath,
+        string? optionalPrefix,
         int line, int offset) {
-        var lexer = new Lexer();
-        bool eof = false;
-        int end = offset;
-        var spanValue = value.AsSpan();
+        int startAsOffset = value.Range.Start.Value;
 
-        lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
+        var text = value.TrimWhile(IsWhitespaceNorNewLine);
 
-        if (lexer.EatWord(lexer.SlashSlash, ref spanValue, ref end)) {
-            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-        }
+        if (optionalPrefix is not null
+            && optionalPrefix.ReadWordIfMatches(ref text)) { text = text.TrimWhile(IsWhitespaceNorNewLine); }
 
-        int start = end;
-        if (lexer.EatWord(lexer.ParagraphHash, ref spanValue, ref end)) {
-            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-            if (!eof) {
-                var anchorValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                if (anchorValue.Length > 0) {
-                    var Anchor = anchorValue.ToString();
-                    string Comment = String.Empty;
-                    lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                    var commentValue = lexer.EatUntil(lexer.NewLine, ref spanValue, ref end, ref eof);
-                    if (commentValue.Length > 0) {
-                        Comment = anchorValue.ToString();
-                    }
-                    return new MatchInfo(
-                        Kind: MatchInfoKind.Anchor,
-                        MatchPath: ownMatchPath,
-                        MatchRange: new Range(start, end),
-                        Command: string.Empty,
-                        Anchor: PathInfo.Create(ownMatchPath.FilePath, Anchor),
-                        Path: PathInfo.Empty,
-                        Comment: Comment,
-                        Line: line
-                        );
-                }
-            } else {
-                return null;
-            }
-        }
+        int startAfterOptional = text.Range.Start.Value;
 
-        if (lexer.EatWord(lexer.ParagraphGreater, ref spanValue, ref end)) {
-            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-            if (eof) { return null; }
-            // §>Command_Path§
-            var commandValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
-            if (commandValue.Length == 0) { return null; }
-            string Command = commandValue.ToString();
-            string Path = string.Empty;
-            string Comment = string.Empty;
+        // §# Anchor Comment
+        if (ParagraphHash.ReadWordIfMatches(ref text)) {
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
 
-            if (!eof) {
-                lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-            }
+            var anchorSlice = StringSlice.Empty;
+            var commentSlice = StringSlice.Empty;
+            (anchorSlice, text) = text.SplitIntoWhile(IsNotWhitespaceNorNewLine);
+            if (anchorSlice.IsNullOrEmpty()) { return default; }
 
-            if (!eof) {
-                if (lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
-                    if (!eof) {
-                        lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                    }
-                }
-            }
-            if (!eof) {
-                var pathValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                if (pathValue.Length > 0) {
-                    Path = pathValue.ToString();
-                    if (!eof) {
-                        lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                    }
-                    if (!eof) {
-                        var commentValue = lexer.EatUntil(lexer.Paragraph, ref spanValue, ref end, ref eof);
-                        if (commentValue.Length > 0) {
-                            Comment = commandValue.ToString();
-                            if (!eof && lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
-                            }
-                        }
-                    }
-                }
-            }
-            if (string.IsNullOrEmpty(Command)) {
-                return default;
-            }
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
+
+            (commentSlice, text) = text.SplitIntoWhile(IsAnyThingButNewLine);
+
             return new MatchInfo(
-                Kind: MatchInfoKind.ParagraphCommand,
+                Kind: MatchInfoKind.Anchor,
                 MatchPath: ownMatchPath,
-                MatchRange: new Range(start, end),
-                Command: Command,
-                Anchor: PathInfo.Empty,
-                Path: PathInfo.Parse(Path),
-                Comment: Comment,
+                MatchRange: getMatchRange(),
+                Command: string.Empty,
+                Anchor: PathInfo.Create(ownMatchPath.FilePath, anchorSlice.ToString()),
+                Path: PathInfo.Empty,
+                Comment: commentSlice.ToString(),
                 Line: line
                 );
         }
 
-        if (lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
-            lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-            if (eof) { return null; }
-            // §_Path§Comment§
-            string Path = string.Empty;
-            string Anchor = string.Empty;
-            string Comment = string.Empty;
+        // §>Command_Path§ Comment
+        if (ParagraphGreater.ReadWordIfMatches(ref text)) {
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
 
-            var pathValue = lexer.EatUntil(lexer.Paragraph, ref spanValue, ref end, ref eof);
-            if (pathValue.Length > 0) {
-                Path = pathValue.TrimEnd().ToString();
-            } else {
-                return default;
+            var commandSlice = StringSlice.Empty;
+            var pathSlice = StringSlice.Empty;
+            var commentSlice = StringSlice.Empty;
+            (commandSlice, text) = text.SplitIntoWhile(IsNotWhitespaceNorNewLine);
+            if (commandSlice.IsNullOrEmpty()) { return default; }
+
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
+
+            (pathSlice, text) = text.SplitIntoWhile(IsNotWhitespaceNorNewLine);
+
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
+
+            if (Paragraph.ReadWordIfMatches(ref text)) {
+                text = text.TrimWhile(IsWhitespaceNorNewLine);
             }
 
-            if (!eof && lexer.EatWord(lexer.Paragraph, ref spanValue, ref end)) {
-                lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-
-                var commentValue = lexer.EatUntil(lexer.Paragraph, ref spanValue, ref end, ref eof);
-                if (commentValue.Length > 0) {
-                    Comment = commentValue.TrimEnd().ToString();
-
-                    if (!eof) {
-                        lexer.EatWord(lexer.Paragraph, ref spanValue, ref end);
-                    }
-                }
-            }
+            (commentSlice, text) = text.SplitIntoWhile(IsAnyThingButNewLine);
 
             return new MatchInfo(
-                MatchInfoKind.Paragraph,
+                Kind: MatchInfoKind.ParagraphCommand,
                 MatchPath: ownMatchPath,
-                MatchRange: new Range(start, end),
-                Path: PathInfo.Parse(Path),
-                Command: string.Empty,
-                Anchor: PathInfo.Parse(Anchor),
-                Comment: Comment,
-                Line: line);
+                MatchRange: getMatchRange(),
+                Path: PathInfo.Create(ownMatchPath.FilePath, pathSlice.ToString()),
+                Command: commandSlice.ToString(),
+                Anchor: PathInfo.Empty,
+                Comment: commentSlice.ToString(),
+                Line: line
+                );
         }
 
+        // §_Path§Comment
+
+        if (Paragraph.ReadWordIfMatches(ref text)) {
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
+
+            var pathSlice = StringSlice.Empty;
+            var commentSlice = StringSlice.Empty;
+            (pathSlice, text) = text.SplitIntoWhile(IsNotWhitespaceNorNewLine);
+            if (pathSlice.IsNullOrEmpty()) { return default; }
+
+            text = text.TrimWhile(IsWhitespaceNorNewLine);
+
+            if (Paragraph.ReadWordIfMatches(ref text)) {
+                text = text.TrimWhile(IsWhitespaceNorNewLine);
+            }
+
+            (commentSlice, text) = text.SplitIntoWhile(IsAnyThingButNewLine);
+
+            return new MatchInfo(
+                Kind: MatchInfoKind.Paragraph,
+                MatchPath: ownMatchPath,
+                Path: PathInfo.Parse(pathSlice.ToString()),
+                MatchRange: getMatchRange(),
+                Command: string.Empty,
+                Anchor: PathInfo.Empty,
+                Comment: commentSlice.ToString(),
+                Line: line
+                );
+        }
         {
             var kind = MatchInfoKind.Invalid;
-            if (lexer.EatWord(lexer.DetailsProtocol, ref spanValue, ref end)) {
+            if (DetailsProtocol.ReadWordIfMatches(ref text)) {
                 kind = MatchInfoKind.DetailsLink;
-            } else if (lexer.EatWord(lexer.DetailsCodeProtocol, ref spanValue, ref end)) {
+            } else if (DetailsCodeProtocol.ReadWordIfMatches(ref text)) {
                 kind = MatchInfoKind.DetailscodeLink;
             }
             if (kind != MatchInfoKind.Invalid) {
-                string Path = string.Empty;
-                string Comment = string.Empty;
-                var pathValue = lexer.EatUntil(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                if (pathValue.Length > 0) {
-                    Path = pathValue.ToString();
-                } else {
-                    return null;
-                }
-                if (!eof) {
-                    lexer.EatWhile(lexer.Whitespace, ref spanValue, ref end, ref eof);
-                }
-                if (!eof) {
-                    var commentValue = lexer.EatUntil(lexer.NewLine, ref spanValue, ref end, ref eof);
-                    if (commentValue.Length > 0) {
-                        Comment = commentValue.ToString();
-                    }
-                }
+                var pathSlice = StringSlice.Empty;
+                var commentSlice = StringSlice.Empty;
+                (pathSlice, text) = text.SplitIntoWhile(IsNotWhitespaceNorNewLine);
+                if (pathSlice.IsNullOrEmpty()) { return default; }
+                text = text.TrimWhile(IsWhitespaceNorNewLine);
+                (commentSlice, text) = text.SplitIntoWhile(IsAnyThingButNewLine);
 
                 return new MatchInfo(
                     Kind: kind,
                     MatchPath: ownMatchPath,
-                    MatchRange: new Range(start, end),
+                    MatchRange: getMatchRange(),
                     Command: string.Empty,
                     Anchor: PathInfo.Empty,
-                    Path: PathInfo.Parse(Path),
-                    Comment: Comment,
+                    Path: PathInfo.Parse(pathSlice.ToString()),
+                    Comment: commentSlice.ToString(),
                     Line: line
                     );
             }
         }
-        if (lexer.EatWord(lexer.OpenSquareBrackets, ref spanValue, ref end)) {
-            var kind = MatchInfoKind.Paragraph;
-            if (lexer.EatWord(lexer.DetailsProtocol, ref spanValue, ref end)) {
-                kind = MatchInfoKind.DetailsLink;
-            } else if (lexer.EatWord(lexer.DetailsCodeProtocol, ref spanValue, ref end)) {
-                kind = MatchInfoKind.DetailscodeLink;
+
+        // [Path](Comment)
+        if (OpenSquareBrackets.ReadWordIfMatches(ref text)) {
+            var kind = MatchInfoKind.Invalid;
+            if (DetailsProtocol.ReadWordIfMatches(ref text)) {
+                kind = MatchInfoKind.DetailsLinkMarkdown;
+            } else if (DetailsCodeProtocol.ReadWordIfMatches(ref text)) {
+                kind = MatchInfoKind.DetailscodeLinkMarkdown;
             }
             if (kind != MatchInfoKind.Invalid) {
-                var pathValue = lexer.EatUntil(lexer.CloseSquareBrackets, ref spanValue, ref end, ref eof);
-                if (!eof && pathValue.Length > 0) {
-                    string Path = pathValue.ToString();
-                    if (lexer.EatWord(lexer.CloseSquareBrackets, ref spanValue, ref end)) {
-                        if (lexer.EatWord(lexer.OpenRoundBrackets, ref spanValue, ref end)) {
-                            var commentValue = lexer.EatUntil(lexer.CloseRoundBrackets, ref spanValue, ref end, ref eof);
-                            var Comment = commentValue.ToString();
-                            lexer.EatWord(lexer.CloseRoundBrackets, ref spanValue, ref end);
+                var pathSlice = StringSlice.Empty;
+                var commentSlice = StringSlice.Empty;
+                (pathSlice, text) = text.SplitIntoWhile(IsNotWhitespaceNorNewLine);
+                if (pathSlice.IsNullOrEmpty()) { return default; }
+                text = text.TrimWhile(IsWhitespaceNorNewLine);
+                if (CloseSquareBrackets.ReadWordIfMatches(ref text)) {
+                    text = text.TrimWhile(IsWhitespaceNorNewLine);
+                    if (OpenRoundBrackets.ReadWordIfMatches(ref text)) {
+                        text = text.TrimWhile(IsWhitespaceNorNewLine);
+                        (commentSlice, text) = text.SplitIntoWhile(IsAnyThingButNewLine);
+                        if (CloseRoundBrackets.ReadWordIfMatches(ref text)) {
                             return new MatchInfo(
                                 Kind: kind,
                                 MatchPath: ownMatchPath,
-                                MatchRange: new Range(start, end),
+                                MatchRange: getMatchRange(),
                                 Command: string.Empty,
                                 Anchor: PathInfo.Empty,
-                                Path: PathInfo.Parse(Path),
-                                Comment: Comment,
+                                Path: PathInfo.Parse(pathSlice.ToString()),
+                                Comment: commentSlice.ToString(),
                                 Line: line
                                 );
                         }
@@ -234,6 +203,14 @@ public static class MatchUtility {
                 }
             }
         }
+
         return null;
+
+        Range getMatchRange() {
+            var nextStart = (startAfterOptional - startAsOffset) + offset;
+            var length = text.Range.End.Value - startAfterOptional;
+            var result = new Range(nextStart, nextStart + length);
+            return result;
+        }
     }
 }

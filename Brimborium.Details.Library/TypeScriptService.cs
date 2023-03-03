@@ -86,7 +86,7 @@ public class TypeScriptService {
         if (sourceCode.Contains('§')) {
             var ownMatchPath = PathInfo.Create(tsFile.RelativePath!, string.Empty);
             foreach (System.Text.RegularExpressions.Match match in regexSimple.Matches(sourceCode)) {
-                var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath, 0, match.Index);
+                var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath,null, 0, match.Index);
                 if (matchInfo is null) { continue; }
                 
                 if (result is null) { 

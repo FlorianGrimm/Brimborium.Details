@@ -13,7 +13,7 @@ global using global::System.Text.Json.Serialization;
 global using global::System.Text.RegularExpressions;
 
 global using global::Markdig;
-global using global::Markdig.Helpers;
+//global using global::Markdig.Helpers;
 global using global::Markdig.Parsers;
 global using global::Markdig.Renderers;
 global using global::Markdig.Renderers.Normalize;

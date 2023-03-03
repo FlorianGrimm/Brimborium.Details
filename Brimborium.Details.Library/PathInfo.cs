@@ -9,17 +9,19 @@ public class PathInfo : IEquatable<PathInfo> {
     public static PathInfo? _Empty;
     public static PathInfo Empty => _Empty ??= new PathInfo(string.Empty, string.Empty, string.Empty);
 
-    public static PathInfo Parse(string logicalPath) {
+    public static PathInfo Parse(string logicalPath)
+        => Parse(logicalPath.AsStringSlice());
+    
+    public static PathInfo Parse(StringSlice logicalPath) {
         var (filename, partLine, partContent) = Split(logicalPath);
-        return PathInfo.Create(logicalPath.AsSubString(), filename, partContent);
+        return PathInfo.Create(logicalPath, filename, partContent);
 
-        static (SubString filename, SubString partLine, SubString partContent) Split(string logicalPath) {
-            var logicalPathSubString = logicalPath.AsSubString();
-            var (filePath,tail) = logicalPathSubString.SplitInto(ArraySeparator);
+        static (StringSlice filename, StringSlice partLine, StringSlice partContent) Split(StringSlice logicalPath) {
+            var (filePath,tail) = logicalPath.SplitInto(ArraySeparator);
             if (tail.IsNullOrEmpty()) {
-                return (filePath, SubString.Empty, SubString.Empty);
+                return (filePath, StringSlice.Empty, StringSlice.Empty);
             }
-            var (part1, part2) = logicalPathSubString.SplitInto(ArraySeparator);
+            var (part1, part2) = logicalPath.SplitInto(ArraySeparator);
             if (!part1.IsNullOrEmpty() && !part2.IsNullOrEmpty()) {
                 return (filePath, part1, part2);
             }
@@ -42,18 +44,18 @@ public class PathInfo : IEquatable<PathInfo> {
             }
 
             if (matchNumber) {
-                return (filePath, part1, SubString.Empty);
+                return (filePath, part1, StringSlice.Empty);
             } else {
-                return (filePath, SubString.Empty, part1);
+                return (filePath, StringSlice.Empty, part1);
             }
         }
     }
 
     public static PathInfo Create(string filename, string contentPath) {
-        return Create(SubString.Empty, filename.AsSubString(), contentPath.AsSubString());
+        return Create(StringSlice.Empty, filename.AsStringSlice(), contentPath.AsStringSlice());
     }
 
-    public static PathInfo Create(SubString logicalPath, SubString filename, SubString contentPath) {
+    public static PathInfo Create(StringSlice logicalPath, StringSlice filename, StringSlice contentPath) {
         var spanFilename = filename.AsSpan();
         var spanContentPath = contentPath.AsSpan();
         if (spanFilename.Contains('\\')) {
@@ -70,18 +72,18 @@ public class PathInfo : IEquatable<PathInfo> {
             buffer[0] = Slash;
             spanContentPath.CopyTo(buffer.AsSpan(1));
             spanContentPath = buffer.AsSpan();
-            logicalPath = SubString.Empty;
+            logicalPath = StringSlice.Empty;
         }
 
         if (logicalPath.IsNullOrEmpty()) {
             if ((spanFilename.Length == 0) && (spanContentPath.Length == 0)) {
-                logicalPath = SubString.Empty;
+                logicalPath = StringSlice.Empty;
             } else {
                 char[] buffer = new char[spanFilename.Length + 1 + spanContentPath.Length];
                 spanFilename.CopyTo(buffer.AsSpan());
                 buffer[spanFilename.Length] = Separator;
                 spanContentPath.CopyTo(buffer.AsSpan(spanFilename.Length + 1));
-                logicalPath = new SubString(new string(buffer));
+                logicalPath = new StringSlice(new string(buffer));
             }
         } else {
             if (contentPath.Length == 0) {

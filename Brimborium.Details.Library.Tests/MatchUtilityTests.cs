@@ -6,7 +6,7 @@ public class MatchUtilityTests {
         var location = PathInfo.Create("other.md", "#/definition");
         {
             var comment1 = MatchUtility.parseMatch(
-            "// § todo.md", location, 0, 0);
+            "// § todo.md", location, "//", 0, 0);
 
             Assert.NotNull(comment1);
             Assert.Equal("todo.md", comment1.Path.ToString());
@@ -16,7 +16,7 @@ public class MatchUtilityTests {
         }
         {
             var m1 = MatchUtility.parseMatch(
-                "§ Syntax-Marker.md / Syntax Marker", location, 0, 0);
+                "§ Syntax-Marker.md / Syntax Marker", location, "//", 0, 0);
 
             Assert.NotNull(m1);
             Assert.Equal("Syntax-Marker.md / Syntax Marker", m1.Path.ToString());
@@ -26,38 +26,38 @@ public class MatchUtilityTests {
 
         {
             var m2 = MatchUtility.parseMatch(
-                "§ Syntax-Marker.md / Syntax Marker § Comment", location, 0, 0);
+                "§ Syntax-Marker.md / Syntax Marker § Comment", location, "//", 0, 0);
         }
 
         {
             var m3 = MatchUtility.parseMatch(
-            "§ Syntax-Marker.md / Syntax Marker § Comment §", location, 0, 0);
+            "§ Syntax-Marker.md / Syntax Marker § Comment §", location, "//", 0, 0);
         }
 
         {
 
             var m4 = MatchUtility.parseMatch(
-                "§ Syntax-Marker.md / Syntax Marker # 5", location, 0, 0);
+                "§ Syntax-Marker.md / Syntax Marker # 5", location, "//", 0, 0);
         }
 
         {
             var m5 = MatchUtility.parseMatch(
-            "§ Syntax-Marker.md / Syntax Marker # 10 §", location, 0, 0);
+            "§ Syntax-Marker.md / Syntax Marker # 10 §", location, "//", 0, 0);
         }
 
         {
             var m6 = MatchUtility.parseMatch(
-                "§ Syntax-Marker.md / Syntax Marker # 5 § Comment", location, 0, 0);
+                "§ Syntax-Marker.md / Syntax Marker # 5 § Comment", location, "//", 0, 0);
         }
 
         {
             var m7 = MatchUtility.parseMatch(
-                "§ Syntax-Marker.md / Syntax Marker # 10 § Comment §", location, 0, 0);
+                "§ Syntax-Marker.md / Syntax Marker # 10 § Comment §", location, "//", 0, 0);
         }
 
         {
             var c1 = MatchUtility.parseMatch(
-               "§> Call-Command", location, 0, 0);
+               "§> Call-Command", location, "//", 0, 0);
 
             Assert.NotNull(c1);
             Assert.Equal("Call-Command", c1.Command);
@@ -66,7 +66,7 @@ public class MatchUtilityTests {
 
         {
             var c2 = MatchUtility.parseMatch(
-               "§> Call-Command Syntax-Marker.md / Syntax Marker", location, 0, 0);
+               "§> Call-Command Syntax-Marker.md / Syntax Marker", location, "//", 0, 0);
 
             Assert.NotNull(c2);
             Assert.Equal("Call-Command", c2.Command);
@@ -75,7 +75,7 @@ public class MatchUtilityTests {
 
         {
             var c3 = MatchUtility.parseMatch(
-               "§> Show-List todo.md", location, 0, 0);
+               "§> Show-List todo.md", location, "//", 0, 0);
 
             Assert.NotNull(c3);
             Assert.Equal("Show-List", c3.Command);
@@ -87,7 +87,7 @@ public class MatchUtilityTests {
 
         {
             var s1 = MatchUtility.parseMatch(
-               "// § todo.md", location, 0, 0);
+               "// § todo.md", location, "//", 0, 0);
 
             Assert.NotNull(s1);
             Assert.Equal(MatchInfoKind.Paragraph, s1.Kind);
