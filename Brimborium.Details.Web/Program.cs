@@ -1,4 +1,5 @@
-using Brimborium.Details.Controller;
+using Brimborium.Details.Cfg;
+using Brimborium.Details.Service;
 
 namespace Brimborium.Details;
 
@@ -6,17 +7,16 @@ public class Program {
     public static async Task Main(string[] args) {
         var builder = WebApplication.CreateBuilder(args);
 
+#if DEBUG
         builder.Configuration.AddUserSecrets("Brimborium.Details");
-        var appSettings = new AppSettings();
-        builder.Configuration.Bind(appSettings);
-        appSettings.Configure(builder.Configuration);
-        if (!string.IsNullOrEmpty(appSettings.DetailsConfiguration)) {
-            builder.Configuration.AddJsonFile(appSettings.DetailsConfiguration, false, true);
-        }
-        var solutionInfo = appSettings.ValidateConfiguration(builder.Configuration);
-        if (solutionInfo is null) { return; }
-        builder.Services.AddSingleton(solutionInfo);
+#endif
 
+        builder.Services.AddOptions<AppSettings>().Configure(
+            (appSettings) => {
+                builder.Configuration.Bind(appSettings);
+                //appSettings.Configure(builder.Configuration);
+                AppSettings.ConfigureAppSettings(builder.Configuration, builder.Configuration, appSettings);
+            });
         builder.Services.AddServicesWithRegistrator(
             (a) => {
                 a.FromDependencyContext(
@@ -25,14 +25,11 @@ public class Program {
                     )
                     .AddClasses()
                     .UsingAttributes();
-                /*
-                a.FromAssembliesOf(typeof(AppSettings))
-                    .AddClasses()
-                    .UsingAttributes();
-                */
             });
+        
         // Add services to the container.
         builder.Services.AddRazorPages();
+        builder.Services.AddHostedService<DetailsHostedService>();
 
         var app = builder.Build();
 
@@ -47,7 +44,7 @@ public class Program {
         app.UseStaticFiles();
 
         app.UseRouting();
-        
+
         app.UseAuthorization();
 
         foreach (var c in app.Services.GetServices<IMinimalAPIController>()) {
@@ -56,6 +53,15 @@ public class Program {
 
         app.MapRazorPages();
 
-        await app.RunAsync();
+        var ctsMain = new CancellationTokenSource();
+        System.Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e) {
+            e.Cancel = true;
+            ctsMain.Cancel();
+
+            IHostApplicationLifetime applicationLifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
+            applicationLifetime.StopApplication();
+        };
+
+        await app.RunAsync(ctsMain.Token);
     }
 }

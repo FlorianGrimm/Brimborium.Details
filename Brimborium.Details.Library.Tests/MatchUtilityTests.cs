@@ -1,9 +1,11 @@
+using Brimborium.Details.Parse;
+
 namespace Brimborium.Details.Tests;
 
 public class MatchUtilityTests {
     [Fact]
     public void T0001MatchUtility() {
-        var location = PathInfo.Create("other.md", "#/definition");
+        var location = PathData.Create("other.md", "#/definition");
         {
             var comment1 = MatchUtility.parseMatch(
             "// § todo.md", location, "//", 0, 0);

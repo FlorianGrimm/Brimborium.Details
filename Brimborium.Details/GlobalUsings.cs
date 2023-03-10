@@ -28,3 +28,7 @@ global using global::Microsoft.CodeAnalysis.CSharp;
 global using global::Microsoft.CodeAnalysis.CSharp.Syntax;
 global using global::Microsoft.CodeAnalysis;
 global using global::Microsoft.CodeAnalysis.FindSymbols;
+
+global using global::Brimborium.Details.Cfg;
+global using global::Brimborium.Details.Parse;
+global using global::Brimborium.Details.Repository;

@@ -1,4 +1,5 @@
 ﻿namespace Brimborium.Details;
+
 // § todo.md § https://github.com/mrlacey/CommentLinks §
 public static class Program {
     public static async Task Main(string[] args) {
@@ -7,22 +8,33 @@ public static class Program {
 
         var appSettings = new AppSettings();
         var hostBuilder = Host.CreateDefaultBuilder(args);
+
+#if DEBUG
         hostBuilder.ConfigureAppConfiguration(
             (configurationBuilder) => {
                 configurationBuilder.AddUserSecrets("Brimborium.Details");
             });
+#endif
+
         hostBuilder.ConfigureAppConfiguration(
             (configurationBuilder) => {
                 var configuration = configurationBuilder.Build();
                 configuration.Bind(appSettings);
-                configureAppSettings(configurationBuilder, configuration, appSettings);
+                //appSettings.Configure(configuration);
+                AppSettings.ConfigureAppSettings(configurationBuilder, configuration, appSettings);
+                
             });
-        // hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
-        //     SolutionInfo? solutionInfo = appSettings.ValidateConfiguration(hostBuilderContext.Configuration);
-        //     if (solutionInfo is not null) {
-        //         serviceCollection.AddSingleton(solutionInfo);
-        //     }
-        // });
+
+        hostBuilder.ConfigureServices(
+            (hostBuilderContext, serviceCollection) => {
+                serviceCollection.AddOptions<AppSettings>().Configure(
+                    (appSettings) => {
+                        hostBuilderContext.Configuration.Bind(appSettings);
+                        appSettings.ConfigureAfterBind();
+                    });
+            });
+
+        
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
             serviceCollection.AddServicesWithRegistrator(
                 a => {
@@ -34,11 +46,10 @@ public static class Program {
                     .UsingAttributes();
                 });
         });
-        using IHost host = hostBuilder.Build();
-        // var solutionInfo = host.Services.GetService<SolutionInfo>();
-        SolutionInfo? solutionInfo = appSettings.ValidateConfiguration(host.Services.GetRequiredService<IConfiguration>());
-        if (solutionInfo is null) { return; }
         
+        using IHost host = hostBuilder.Build();
+
+
         var ctsMain = new CancellationTokenSource();
         await host.StartAsync(ctsMain.Token);
 
@@ -50,20 +61,23 @@ public static class Program {
             applicationLifetime.StopApplication();
         };
 
+        var solutionDataRepository=host.Services.GetRequiredService<ISolutionDataRepository>();
+        var solutionData = solutionDataRepository.GetSolutionData();
+        if (solutionData is null) {
+            System.Console.Error.WriteLine("SolutionInfo is not valid");
+            return;
+        }
+        var rootRepositoryFactory = host.Services.GetRequiredService<RootRepositoryFactory>();
+        var rootRepository = rootRepositoryFactory.Get(solutionData);
+        //var solutionData = appSettings.ValidateConfiguration(host.Services.GetRequiredService<IConfiguration>());
         
-        if (appSettings.Watch) {
-            await host.Services.GetRequiredService<WatchService>().Initialize(solutionInfo, ctsMain.Token);
-        }
-        await host.Services.GetRequiredService<ISolutionAnalyzer>().AnalyzeAsync(solutionInfo, ctsMain.Token);
-
-        if (appSettings.Watch) {
-            host.Services.GetRequiredService<WatchService>().Start(ctsMain.Token);
-            System.Console.Out.WriteLine("Watching");
-            //await Task.Delay(-1, ctsMain.Token);
+        var detailsLogicService = host.Services.GetRequiredService<DetailsRunnerService>();
+        var wait = await detailsLogicService.ExecuteAsync(rootRepository, ctsMain.Token);
+        if (wait) {
             await host.WaitForShutdownAsync(ctsMain.Token);
+        } else {
+            await host.StopAsync();
         }
-
-        await host.StopAsync();
 
 #if false
         var extension = System.IO.Path.GetExtension(detailJsonPath);
@@ -71,25 +85,4 @@ public static class Program {
         await SolutionInfoUtility.WriteSolutionInfo(outputDetailJsonPath, solutionInfo);
 #endif
     } // main
-
-    private static void configureAppSettings(
-        IConfigurationBuilder configurationBuilder,
-        IConfiguration configuration,
-        AppSettings appSettings) {
-        appSettings.Configure(configuration);
-        if (!string.IsNullOrEmpty(appSettings.DetailsConfiguration)) {
-            if (!System.IO.File.Exists(appSettings.DetailsConfiguration)) {
-                throw new Exception($"File not found: {appSettings.DetailsConfiguration}");
-            }
-            var detailsConfiguration = appSettings.DetailsConfiguration;
-            configurationBuilder.AddJsonFile(appSettings.DetailsConfiguration, optional: false, reloadOnChange: true);
-            configuration = configurationBuilder.Build();
-            configuration.Bind(appSettings);
-            appSettings.DetailsConfiguration = detailsConfiguration;
-            appSettings.DetailsRoot = System.IO.Path.GetFullPath(
-                System.IO.Path.Combine(
-                    System.IO.Path.GetDirectoryName(detailsConfiguration) ?? throw new Exception("GetDirectoryName is null"),
-                    appSettings.DetailsRoot));
-        }
-    }
 }

@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Brimborium.Details</RootNamespace>
-    <UserSecretsId>6807b649-2116-486d-88a9-a8a20fe3601e</UserSecretsId>
+    <UserSecretsId>Brimborium.Details</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>

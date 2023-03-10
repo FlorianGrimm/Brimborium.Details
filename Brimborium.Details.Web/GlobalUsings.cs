@@ -21,9 +21,21 @@ global using global::Markdig.Syntax.Inlines;
 global using global::Microsoft.Extensions.Configuration;
 global using global::Microsoft.Extensions.DependencyInjection;
 global using global::Microsoft.Extensions.Options;
+global using global::Microsoft.Extensions.Hosting;
 
 global using global::Microsoft.CodeAnalysis.MSBuild;
 global using global::Microsoft.CodeAnalysis.CSharp;
 global using global::Microsoft.CodeAnalysis.CSharp.Syntax;
 global using global::Microsoft.CodeAnalysis;
 global using global::Microsoft.CodeAnalysis.FindSymbols;
+
+global using global::Brimborium.Details.Controller;
+global using global::Brimborium.Details.Service;
+
+global using global::Brimborium.Details;
+global using global::Brimborium.Details.Cfg;
+global using global::Brimborium.Details.Enhancement;
+global using global::Brimborium.Details.Parse;
+global using global::Brimborium.Details.Repository;
+global using global::Brimborium.Details.Utility;
+global using global::Brimborium.Details.Watch;
