@@ -98,7 +98,7 @@ public class CSharpService {
         }
 
         lstRelevantProject.Sort((a, b) => StringComparer.InvariantCulture.Compare(a.Name, b.Name));
-        var lstRelevantProjectProjectInfo = new List<ProjectProjectInfo>();
+        var lstRelevantProjectProjectInfo = new List<RoslynProjectProjectData>();
         foreach (var project in lstRelevantProject) {
             if (project.FilePath is null) {
                 Console.Error.WriteLine($"ERROR: project.FilePath is null");
@@ -117,18 +117,18 @@ public class CSharpService {
             }
 
             var projectFileName = parserSinkContext.ConvertToFileName(project.FilePath);
-            var projectInfo = new ProjectData(
+            var projectData = new ProjectData(
                     project.Name,
                     projectFileName,
                     "CSharp",
                     projectFileName.GetParentDirectory() ?? FileName.Empty
                     );
-            projectInfo = parserSinkContext.EnsureProjectInfo(projectInfo);
-            parserSinkContext.EnsureProjectDocumentFileNames(projectInfo, lstDocument);
+            projectData = parserSinkContext.GetOrAddProject(projectData);
+            parserSinkContext.SetProjectDocuments(projectData, lstDocument);
             lstRelevantProjectProjectInfo.Add(
-                new ProjectProjectInfo(
+                new RoslynProjectProjectData(
                     project,
-                    projectInfo));
+                    projectData));
         }
         var csharpContext = new CSharpContext(
             solution,
@@ -143,20 +143,20 @@ public class CSharpService {
         ) {
         var solutionInfo = parserSinkContext.SolutionData;
         var solution = csharpContext.Solution;
-        var lstCompilingProjects = new List<ProjectProjectInfo>();
+        var lstCompilingProjects = new List<RoslynProjectProjectData>();
 
         await ParallelUtility.ForEachAsync(
             csharpContext.lstRelevantProjectProjectInfo,
             cancellationToken,
-            async (projectProjectInfo, cancellationToken) => {
-                var project = projectProjectInfo.Project;
+            async (roslynProjectProjectData, cancellationToken) => {
+                var project = roslynProjectProjectData.Project;
                 var compilation = await project.GetCompilationAsync();
                 if (compilation is null) {
                     Console.Out.WriteLine($"INFO: Compiles: {project.Name} - {project.Id} compilation is null");
                 } else {
                     Console.Out.WriteLine($"INFO: Compiles: {project.Name} - {project.Id} - OK");
                     lock (lstCompilingProjects) {
-                        lstCompilingProjects.Add(projectProjectInfo);
+                        lstCompilingProjects.Add(roslynProjectProjectData);
                     }
                 }
             }
@@ -221,7 +221,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                 Console.Error.WriteLine($"ERROR: compilation is null");
                 continue;
             }
-            var lstCSharpDocumentInfo = new List<CSharpDocumentInfo>();
+            var listCSharpDocumentInfo = new List<CSharpDocumentInfo>();
 
             await ParallelUtility.ForEachAsync(
                 project.Documents,
@@ -232,13 +232,12 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                             );
                     await parseDocument(
                         solutionInfo, solution, compilation, document, documentInfo);
-                    lock (lstCSharpDocumentInfo) {
-                        lstCSharpDocumentInfo.Add(documentInfo);
+                    lock (listCSharpDocumentInfo) {
+                        listCSharpDocumentInfo.Add(documentInfo);
                     }
                 });
-            parserSinkContext.AddCSharpDocumentInfo(project.Id, lstCSharpDocumentInfo);
+            parserSinkContext.SetListProjectDocumentInfo(projectProjectInfo.ProjectData, listCSharpDocumentInfo);
         }
-
 
         // foreach (var project in lstRelevantProject) {
         //     foreach (var document in project.Documents) {
@@ -472,15 +471,16 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
     }
 
     public async Task WriteDetail(
-        ParserSinkContext detailContext,
+        WriterContext writerContext,
         CancellationToken cancellationToken) {
         // § todo.md
-        Console.WriteLine($"DetailPath {detailContext.SolutionData.DetailsFolder}");
+        Console.WriteLine($"throw new NotImplementedException();");
         await Task.CompletedTask;
+        
     }
 }
 
 public record CSharpContext(
     Solution Solution,
-    List<ProjectProjectInfo> lstRelevantProjectProjectInfo
+    List<RoslynProjectProjectData> lstRelevantProjectProjectInfo
     );

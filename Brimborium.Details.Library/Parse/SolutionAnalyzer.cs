@@ -52,44 +52,48 @@ public class SolutionAnalyzer
 
     public async Task AnalyzeAsync(
         CancellationToken cancellationToken) {
-        var detailContext = this._RootRepository.GetParserSinkContext();
+        var parserSinkContext = this._RootRepository.GetParserSinkContext();
         {
-            var csharpContext = await this._CSharpService.PrepareSolutionCSharp(detailContext, cancellationToken);
-            var markdownContext = await this._MarkdownService.PrepareSolutionDetail(detailContext, cancellationToken);
+            var csharpContext = await this._CSharpService.PrepareSolutionCSharp(parserSinkContext, cancellationToken);
+            var markdownContext = await this._MarkdownService.PrepareSolutionDetail(parserSinkContext, cancellationToken);
 
             var t1 = csharpContext is null
                 ? Task.CompletedTask
-                : this._CSharpService.ParseCSharp(detailContext, csharpContext, cancellationToken);
+                : this._CSharpService.ParseCSharp(parserSinkContext, csharpContext, cancellationToken);
             await t1;
 
             var t2 = markdownContext is null
                 ? Task.CompletedTask
-                : this._MarkdownService.ParseDetail(detailContext, markdownContext, cancellationToken);
+                : this._MarkdownService.ParseDetail(parserSinkContext, markdownContext, cancellationToken);
             await t2;
             // § todo.md
 
-            var t3 = this._TypeScriptService.ParseTypeScript(detailContext, cancellationToken);
+            var t3 = this._TypeScriptService.ParseTypeScript(parserSinkContext, cancellationToken);
             await t3;
 
             await Task.WhenAll(t1, t2, t3)
                 .WaitAsync(cancellationToken)
                 .ConfigureAwait(false);
-        }
-        // HACK ONLY
-        {
-            var targetPath = detailContext.DetailsRoot.CreateWithRelativePath("detailContext.json").AbsolutePath;
-            Console.Out.WriteLine($"targetPath: {targetPath}");
-            if (targetPath is not null) {
-                await File.WriteAllTextAsync(
-                    targetPath,
-                    JsonSerializer.Serialize(detailContext, new JsonSerializerOptions() { WriteIndented = true }),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+            // HACK ONLY
+            {
+                var targetPath = parserSinkContext.DetailsRoot.CreateWithRelativePath("detailContext.json").AbsolutePath;
+                Console.Out.WriteLine($"targetPath: {targetPath}");
+                if (targetPath is not null) {
+                    await File.WriteAllTextAsync(
+                        targetPath,
+                        JsonSerializer.Serialize(parserSinkContext, new JsonSerializerOptions() { WriteIndented = true }),
+                        cancellationToken)
+                        .ConfigureAwait(false);
+                }
             }
         }
         {
-            var t1 = this._MarkdownService.WriteDetail(detailContext, cancellationToken);
-            var t2 = this._CSharpService.WriteDetail(detailContext, cancellationToken);
+            var writerContext = this._RootRepository.GetWriterContext(parserSinkContext);
+            if (writerContext is null) {
+                return;
+            }
+            var t1 = this._MarkdownService.WriteDetail(writerContext, cancellationToken);
+            var t2 = this._CSharpService.WriteDetail(writerContext, cancellationToken);
 
             await Task.WhenAll(t1, t2)
                 .WaitAsync(cancellationToken)

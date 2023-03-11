@@ -13,9 +13,8 @@ public class CommandShowList : IMatchCommand {
         SourceCodeData sourceCodeMatch,
         MarkdownDocumentWriter markdownDocumentWriter,
         IReplacementFinder? replacementFinder,
-        DetailContextCache? cache,
         CancellationToken cancellationToken) {
-        var detailContext = markdownDocumentWriter.DetailContext;
+        var detailContext = markdownDocumentWriter.WriterContext;
         var matchInfo = sourceCodeMatch.DetailData;
 
         var path = matchInfo.Path;
@@ -23,13 +22,13 @@ public class CommandShowList : IMatchCommand {
             // § todo.md
             var relativePath =
                 markdownDocumentWriter.MarkdownDocumentInfo.FileName.Rebase(
-                    markdownDocumentWriter.DetailContext.SolutionData.DetailsFolder
+                    markdownDocumentWriter.WriterContext.DetailsFolder
                 )?.RelativePath
                 ?? string.Empty;
             path = PathData.Parse(relativePath);
         }
 
-        var lstMatch = detailContext.QueryPath(path, cache);
+        var lstMatch = detailContext.QueryPath(path);
 
         //ListBlock? target = default;
         Range? targetRange = default;
@@ -67,7 +66,7 @@ public class CommandShowList : IMatchCommand {
                 //    link = match.SourceCodeMatch.Match.MatchPath.FilePath;
                 //}
                 sb.Append("- ");
-                if (match.SourceCodeMatch.FilePath.RootFolder == markdownDocumentWriter.DetailContext.SolutionData.DetailsFolder) {
+                if (match.SourceCodeMatch.FilePath.RootFolder == markdownDocumentWriter.WriterContext.DetailsFolder) {
                     sb.Append("details://").Append(match.SourceCodeMatch.FilePath.RelativePath);
                     if (match.SourceCodeMatch.DetailData.Line > 0) {
                         sb.Append("#").Append(match.SourceCodeMatch.DetailData.Line);

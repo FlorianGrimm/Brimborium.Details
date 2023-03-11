@@ -1,27 +1,27 @@
 ﻿namespace Brimborium.Details.Enhancement;
 
 public class MarkdownDocumentWriter {
-    private readonly ParserSinkContext _ParserSinkContext;
+    private readonly WriterContext _WriterContext;
     private readonly MarkdownDocumentInfo _MarkdownDocumentInfo;
     private readonly string _MarkdownContent;
     private readonly MarkdownDocument _Document;
     private readonly IFileSystem _FileSystem;
 
     public MarkdownDocumentWriter(
-        ParserSinkContext detailContext,
+        WriterContext writerContext,
         MarkdownDocumentInfo markdownDocumentInfo,
         string markdownContent,
         MarkdownDocument document,
         IFileSystem fileSystem
         ) {
-        this._ParserSinkContext = detailContext;
+        this._WriterContext = writerContext;
         this._MarkdownDocumentInfo = markdownDocumentInfo;
         this._MarkdownContent = markdownContent;
         this._Document = document;
         this._FileSystem = fileSystem;
     }
 
-    public ParserSinkContext DetailContext => this._ParserSinkContext;
+    public WriterContext WriterContext => this._WriterContext;
 
     public MarkdownDocumentInfo MarkdownDocumentInfo => this._MarkdownDocumentInfo;
 

@@ -5,9 +5,9 @@ public interface IDocumentInfo {
 
     FileName GetFileNameProjectRebased(Parse.ProjectData projectInfo);
 
-    List<SourceCodeData>? LstConsumes { get; }
+    List<SourceCodeData>? ListConsumes { get; }
 
-    List<SourceCodeData>? LstProvides { get; }
+    List<SourceCodeData>? ListProvides { get; }
 }
 
 public record MarkdownDocumentInfo(
@@ -15,12 +15,12 @@ public record MarkdownDocumentInfo(
     string DetailsRelativePath
 ) : IDocumentInfo {
     public List<string> LstHeading { get; set; } = new();
-    public List<SourceCodeData>? LstConsumes { get; set; }
-    public List<SourceCodeData> LstProvides { get; set; } = new();
+    public List<SourceCodeData>? ListConsumes { get; set; }
+    public List<SourceCodeData> ListProvides { get; set; } = new();
 
-    public List<SourceCodeData> GetLstConsumes() => this.LstConsumes ??= new();
+    public List<SourceCodeData> GetLstConsumes() => this.ListConsumes ??= new();
 
-    public List<SourceCodeData> GetLstProvides() => this.LstProvides ??= new();
+    public List<SourceCodeData> GetLstProvides() => this.ListProvides ??= new();
 
     public FileName GetFileNameProjectRebased(Parse.ProjectData projectInfo) {
         if (this._FileNameProjectRebased is null) {
@@ -46,13 +46,13 @@ public record MarkdownDocumentInfo(
 public record CSharpDocumentInfo(
     FileName FileName
 ) : IDocumentInfo {
-    public List<SourceCodeData>? LstConsumes { get; set; }
+    public List<SourceCodeData>? ListConsumes { get; set; }
 
-    public List<SourceCodeData>? LstProvides { get; set; }
+    public List<SourceCodeData>? ListProvides { get; set; }
 
-    public List<SourceCodeData> GetLstConsumes() => this.LstConsumes ??= new();
+    public List<SourceCodeData> GetLstConsumes() => this.ListConsumes ??= new();
 
-    public List<SourceCodeData> GetLstProvides() => this.LstProvides ??= new();
+    public List<SourceCodeData> GetLstProvides() => this.ListProvides ??= new();
 
     public FileName GetFileNameProjectRebased(Parse.ProjectData projectInfo) {
         if (this._FileNameProjectRebased is null) {
@@ -67,13 +67,13 @@ public record CSharpDocumentInfo(
 public record TypescriptDocumentInfo(
     FileName FileName
 ) : IDocumentInfo {
-    public List<SourceCodeData>? LstConsumes { get; set; }
+    public List<SourceCodeData>? ListConsumes { get; set; }
 
-    public List<SourceCodeData>? LstProvides { get; set; }
+    public List<SourceCodeData>? ListProvides { get; set; }
 
-    public List<SourceCodeData> GetLstConsumes() => this.LstConsumes ??= new();
+    public List<SourceCodeData> GetLstConsumes() => this.ListConsumes ??= new();
 
-    public List<SourceCodeData> GetLstProvides() => this.LstProvides ??= new();
+    public List<SourceCodeData> GetLstProvides() => this.ListProvides ??= new();
 
     public FileName GetFileNameProjectRebased(Parse.ProjectData projectInfo) {
         if (this._FileNameProjectRebased is null) {

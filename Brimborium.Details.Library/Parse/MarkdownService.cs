@@ -1,10 +1,3 @@
-using Brimborium.Details.Enhancement;
-using Brimborium.Details.Utility;
-
-using Markdig.Syntax;
-
-using System.Net.Http.Headers;
-
 namespace Brimborium.Details.Parse;
 
 [Transient]
@@ -29,7 +22,7 @@ public class MarkdownService {
     public Task<MarkdownContext?> PrepareSolutionDetail(
         ParserSinkContext parserSinkContext,
         CancellationToken cancellationToken) {
-        var projectInfo = parserSinkContext.EnsureDetailsProjectInfo();
+        var projectInfo = parserSinkContext.GetOrAddDetailsProject(null);
         return Task.FromResult<MarkdownContext?>(new MarkdownContext(projectInfo));
     }
 
@@ -47,17 +40,22 @@ public class MarkdownService {
             Console.Out.WriteLine($"DetailsFolder: {solutionInfo.DetailsFolder} contains no *.md files");
             return;
         }
-
+        var listDocumentInfo = new List<MarkdownDocumentInfo>();
         await ParallelUtility.ForEachAsync(
             lstMarkdownFile,
             cancellationToken,
             async (markdownFile, cancellationToken) => {
-                var documentInfo = await this.ParseMarkdownFile(parserSinkContext, markdownFile, cancellationToken);
+                var documentInfo = await this.ParseMarkdownFile(
+                    parserSinkContext, markdownFile, cancellationToken);
+                
                 if (documentInfo is not null) {
-                    parserSinkContext.AddMarkdownDocumentInfo(markdownContext.MarkdownProjectInfo, documentInfo);
+                    lock (listDocumentInfo) {
+                        listDocumentInfo.Add(documentInfo);
+                    }
                 }
-            }
+            }            
         );
+        parserSinkContext.SetListProjectDocumentInfo(markdownContext.MarkdownProjectInfo, listDocumentInfo);
     }
 
     public async Task<MarkdownDocumentInfo> ParseMarkdownFile(
@@ -219,23 +217,18 @@ public class MarkdownService {
     }
 
     public async Task WriteDetail(
-        ParserSinkContext parserSinkContext,
+        WriterContext writerContext,
         CancellationToken cancellationToken) {
-        // ง todo.md
-        Console.WriteLine($"DetailPath {parserSinkContext.SolutionData.DetailsFolder}");
-        var lstMarkdownDocumentInfo = parserSinkContext.GetLstMarkdownDocumentInfo();
-        foreach (var projectDocumentInfo in lstMarkdownDocumentInfo) {
-            if (projectDocumentInfo.DocumentInfo is not MarkdownDocumentInfo markdownDocumentInfo) {
-                continue;
-            }
-
+        // ยง todo.md
+        //Console.WriteLine($"DetailPath {writerContext.SolutionData.DetailsFolder}");
+        var lstMarkdownDocumentInfo = writerContext.GetAllMarkdownDocumentInfo();
+        foreach (var markdownDocumentInfo in lstMarkdownDocumentInfo) {
             MarkdownDocumentWriter? markdownDocumentWriter = default;
-            if (markdownDocumentInfo.LstConsumes is null) {
+            if (markdownDocumentInfo.ListConsumes is null) {
                 continue;
             }
-            var cache = new DetailContextCache();
             var lstReplacementFinder = markdownDocumentInfo.LstReplacementFinder ?? new();
-            foreach (var sourceCodeMatch in markdownDocumentInfo.LstConsumes) {
+            foreach (var sourceCodeMatch in markdownDocumentInfo.ListConsumes) {
                 var matchInfo = sourceCodeMatch.DetailData;
                 if (!matchInfo.IsCommand) { continue; }
 
@@ -243,10 +236,10 @@ public class MarkdownService {
                     replacementFinder => ReferenceEquals(replacementFinder.SourceCodeMatch, sourceCodeMatch));
                 if (replacementFinder is not null) {
                     if (markdownDocumentWriter is null) {
-                        markdownDocumentWriter = await EnsureMarkdownDocumentWriter(parserSinkContext, markdownDocumentInfo, markdownDocumentWriter, cancellationToken);
+                        markdownDocumentWriter = await EnsureMarkdownDocumentWriter(writerContext, markdownDocumentInfo, markdownDocumentWriter, cancellationToken);
                     }
 
-                    await replacementFinder.Command.ExecuteAsync(sourceCodeMatch, markdownDocumentWriter, replacementFinder, cache, cancellationToken);
+                    await replacementFinder.Command.ExecuteAsync(sourceCodeMatch, markdownDocumentWriter, replacementFinder, cancellationToken);
                     continue;
                 }
 
@@ -254,9 +247,9 @@ public class MarkdownService {
                 if (command is null) { continue; }
 
                 if (markdownDocumentWriter is null) {
-                    markdownDocumentWriter = await EnsureMarkdownDocumentWriter(parserSinkContext, markdownDocumentInfo, markdownDocumentWriter, cancellationToken);
+                    markdownDocumentWriter = await EnsureMarkdownDocumentWriter(writerContext, markdownDocumentInfo, markdownDocumentWriter, cancellationToken);
                 }
-                await command.ExecuteAsync(sourceCodeMatch, markdownDocumentWriter, null, cache, cancellationToken);
+                await command.ExecuteAsync(sourceCodeMatch, markdownDocumentWriter, null, cancellationToken);
             }
             if (markdownDocumentWriter is not null) {
                 await markdownDocumentWriter.WriteAsync(cancellationToken);
@@ -264,11 +257,11 @@ public class MarkdownService {
         }
         await Task.CompletedTask;
 
-        async Task<MarkdownDocumentWriter> EnsureMarkdownDocumentWriter(ParserSinkContext parserSinkContext, MarkdownDocumentInfo markdownDocumentInfo, MarkdownDocumentWriter? markdownDocumentWriter, CancellationToken cancellationToken) {
+        async Task<MarkdownDocumentWriter> EnsureMarkdownDocumentWriter(WriterContext writerContext, MarkdownDocumentInfo markdownDocumentInfo, MarkdownDocumentWriter? markdownDocumentWriter, CancellationToken cancellationToken) {
             if (markdownDocumentWriter is null) {
                 var markdownContent = await this._FileSystem.ReadAllTextAsync(markdownDocumentInfo.FileName, Encoding.UTF8, cancellationToken);
                 var document = Markdown.Parse(markdownContent, this._Pipeline);
-                markdownDocumentWriter = new MarkdownDocumentWriter(parserSinkContext, markdownDocumentInfo, markdownContent, document, this._FileSystem);
+                markdownDocumentWriter = new MarkdownDocumentWriter(writerContext, markdownDocumentInfo, markdownContent, document, this._FileSystem);
             }
 
             return markdownDocumentWriter;

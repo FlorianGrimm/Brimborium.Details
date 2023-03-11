@@ -56,7 +56,7 @@ public class TypeScriptService {
             var lstSourceCodeMatch = this.ParseTypeScriptDocument(tsFile, contentText);
             if (lstSourceCodeMatch is not null && lstSourceCodeMatch.Count > 0) {
                 var documentInfo = new TypescriptDocumentInfo(tsFile) {
-                    LstProvides = lstSourceCodeMatch
+                    ListProvides = lstSourceCodeMatch
                 };
                 result.Add(documentInfo);
             }

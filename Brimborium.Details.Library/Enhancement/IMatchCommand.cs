@@ -6,7 +6,6 @@ public interface IMatchCommand {
         SourceCodeData sourceCodeMatch,
         MarkdownDocumentWriter markdownDocumentWriter,
         IReplacementFinder? replacementFinder,
-        DetailContextCache? cache,
         CancellationToken cancellationToken);
 
     IReplacementFinder? GetReplacementFinder(

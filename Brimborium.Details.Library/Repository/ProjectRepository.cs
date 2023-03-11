@@ -43,22 +43,23 @@ public class ProjectRepository {
         }
         var relativePath = rootRelativeProjectFileName.RelativePath
             ?? throw new ArgumentException("FilePath.RelativePath is null", nameof(project));
-        if (this._ProjectByRootRelativeFilePath.TryGetValue(relativePath, out var result)) {
-            return result;
-        } else {
-            result = project with { };
-            this._ProjectByRootRelativeFilePath.Add(relativePath, result);
-            this._ProjectByAbsoluteFilePath.Add(
-                rootRelativeProjectFileName.AbsolutePath
-                ?? throw new ArgumentException("FilePath.AbsolutePath is null", nameof(project)),
-                result);
-            this._ListProjects.Add(result);
-            if (project.FolderPath == this._SolutionData.DetailsFolder) {
-                this._DetailsProject = result;
+        lock (this) {
+            if (this._ProjectByRootRelativeFilePath.TryGetValue(relativePath, out var result)) {
+                return result;
+            } else {
+                result = project with { };
+                this._ProjectByRootRelativeFilePath.Add(relativePath, result);
+                this._ProjectByAbsoluteFilePath.Add(
+                    rootRelativeProjectFileName.AbsolutePath
+                    ?? throw new ArgumentException("FilePath.AbsolutePath is null", nameof(project)),
+                    result);
+                this._ListProjects.Add(result);
+                if (project.FolderPath == this._SolutionData.DetailsFolder) {
+                    this._DetailsProject = result;
+                }
+                return result;
             }
-            return result;
         }
-
     }
 
     public ProjectData? GetProjectWithFolderPath(FileName detailsFolder) {
@@ -74,6 +75,49 @@ public class ProjectRepository {
             );
         return result;
     }
+
+    public ProjectRepositorySnapshot GetSnapshot() {
+        lock (this) {
+            var result = new ProjectRepositorySnapshot(
+                this._SolutionData, 
+                new List<ProjectData>(this._ListProjects),
+                this._DetailsProject);
+            return result;
+        }
+    }
+}
+public class ProjectRepositorySnapshot {
+    private readonly SolutionData _SolutionData;
+    private readonly List<ProjectData> _ProjectDatas;
+    private readonly ProjectData? _DetailsProject;
+    private readonly Dictionary<string, ProjectData> _ProjectByAbsoluteFilePath;
+    private readonly Dictionary<string, ProjectData> _ProjectByRootRelativeFilePath;
+    public ProjectRepositorySnapshot(
+        SolutionData solutionData,
+        List<ProjectData> projectDatas,
+        ProjectData? detailsProject) {
+        this._SolutionData = solutionData;
+        this._ProjectDatas = projectDatas;
+        this._DetailsProject = detailsProject;
+        this._ProjectByAbsoluteFilePath = new(StringComparer.InvariantCultureIgnoreCase);
+        this._ProjectByRootRelativeFilePath = new(StringComparer.InvariantCultureIgnoreCase);
+        foreach(var projectData in projectDatas) {
+            if (projectData.FilePath.AbsolutePath is not null){
+                this._ProjectByAbsoluteFilePath.Add(projectData.FilePath.AbsolutePath, projectData);
+            }
+            if (projectData.FilePath.RelativePath is not null){
+                this._ProjectByRootRelativeFilePath.Add(projectData.FilePath.RelativePath, projectData);
+            }
+        }
+    }
+
+    public bool TryGetByAbsoluteFilePath(
+        FileName project,
+        [MaybeNullWhen(false)] out ProjectData projectData) 
+        => _ProjectByAbsoluteFilePath.TryGetValue(
+                project.AbsolutePath
+                ?? throw new ArgumentException("FilePath.AbsolutePath is null", nameof(project)),
+                out projectData);
 }
 
 public class ProjectContext {
@@ -100,13 +144,23 @@ public class ProjectContext {
         var result = new List<ProjectDocumentData>();
         foreach (var documentFileName in listDocumentFileName) {
             var documentData = this._DocumentRepository.GetOrAdd(
-                new DocumentData(documentFileName)
-                );
+                new DocumentData(documentFileName, null));
             var projectDocumentData = this._ProjectDocumentRepository.GetOrAdd(
-                new ProjectDocumentData(this._Project, documentData)
-                );
+                new ProjectDocumentData(this._Project.FilePath, documentData.FilePath));
             result.Add(projectDocumentData);
         }
         return result;
+    }
+
+    public void SetListProjectDocumentInfo<TDocumentInfo>(List<TDocumentInfo> listDocumentInfo)
+        where TDocumentInfo : IDocumentInfo {
+        foreach (var documentInfo in listDocumentInfo) {
+            var documentData = new DocumentData(documentInfo.FileName, documentInfo);
+            this._DocumentRepository.Set(documentData);
+            var projectDocumentData = this._ProjectDocumentRepository.GetOrAdd(
+                new ProjectDocumentData(this._Project.FilePath, documentData.FilePath)
+                );
+
+        }
     }
 }
