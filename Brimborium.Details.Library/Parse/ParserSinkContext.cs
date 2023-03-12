@@ -114,10 +114,6 @@ public class ParserSinkContext {
 
 }
 
-public readonly record struct ProjectDocumentInfo(
-    ProjectData Project,
-    IDocumentInfo Document);
-    
 public readonly record struct ProjectDocumentInfoSourceCodeMatch(
     ProjectData Project, 
     IDocumentInfo Document,

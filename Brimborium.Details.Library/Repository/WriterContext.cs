@@ -17,9 +17,17 @@ public class WriterContext {
     public List<IDocumentInfo> GetAllDocumentInfo()
         => this._RootRepositorySnapshot.DocumentRepository.GetAllDocumentInfo();
 
-    public List<ProjectDocumentInfo> GetAllProjectDocumentInfo() {
-        return this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfo();
-    }
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRootRelative()
+        => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoProjectRootRelative();
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectProjectRelative()
+        => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoProjectProjectRelative();
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoRootRelative()
+        => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoRootRelative();
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRelative()
+        => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoProjectRelative();
 
 
     public List<DocumentInfoSourceCodeMatch> GetAllConsumes() {
@@ -57,19 +65,30 @@ public class WriterContext {
         PathData searchPath
         ) {
         var result = new List<DocumentInfoSourceCodeMatch>();
-        var (searchPathFileName, searchPathDocumentInfo) = this.FindDocumentInfo(searchPath);
-        //if (searchPathDocumentInfo is null) { return result; }
-        //foreach (var item in this.GetLstProvides()) {
-        //    var (itemFileName, itemDocumentInfo) = this.FindDocumentInfo(item.SourceCodeMatch.DetailData.Path, cache);
-        //    if (itemFileName is null || itemDocumentInfo is null) { continue; }
-        //    if (itemFileName.Equals(searchPathFileName)) {
-        //        if (searchPath.IsContentPathEqual(item.SourceCodeMatch.DetailData.Path)) {
-        //            result.Add(item);
-        //        }
-        //    }
-        //}
-        //return result;
-        throw new NotImplementedException();
+        var searchPathProjectDocumentInfo = this.FindProjectDocumentInfo(searchPath);
+        if (!searchPathProjectDocumentInfo.HasValue) { return result; }
+        var searchforProjectDocumentInfo = searchPathProjectDocumentInfo.Value;
+
+        foreach (var item in this.GetListProvides()) {
+            var matchProjectDocumentInfo = this.FindProjectDocumentInfo(item.SourceCodeMatch.DetailData.Path);
+            if (!matchProjectDocumentInfo.HasValue) { continue; }
+            if (matchProjectDocumentInfo.Value.DocumentFilePathRootRelative.Equals(
+                searchforProjectDocumentInfo.DocumentFilePathRootRelative)) {
+                if (searchPath.IsContentPathEqual(item.SourceCodeMatch.DetailData.Path)){
+                    result.Add(item);
+                }
+            }
+
+
+            //var (itemFileName, itemDocumentInfo) = this.FindDocumentInfo(item.SourceCodeMatch.DetailData.Path);
+            //if (itemFileName is null || itemDocumentInfo is null) { continue; }
+            //    if (itemFileName.Equals(searchPathFileName)) {
+            //        if (searchPath.IsContentPathEqual(item.SourceCodeMatch.DetailData.Path)) {
+            //            result.Add(item);
+            //        }
+            //    }
+        }
+        return result;
     }
 
     public List<ProjectDocumentInfoSourceCodeMatch> QueryPathChildren(
@@ -91,23 +110,61 @@ public class WriterContext {
         throw new NotImplementedException();
     }
 
-    public IDocumentInfo? FindDocumentInfo(PathData path) {
-        var resultDetailsRoot = this._SolutionData.DetailsRoot.CreateWithRelativePath(path.FilePath);
-        var resultDetailsFolder = this._SolutionData.DetailsFolder.CreateWithRelativePath(path.FilePath);
-        var listAllDocumentInfo = this.GetAllDocumentInfo();
-        //var lstProjectDocumentInfo = this.GetLstProjectDocumentInfo(cache);
-        //var lstWithRelativePath = new List<FileName>();
-        foreach (var projectDocumentInfo in listAllDocumentInfo) {
-            var rootRelativePath = projectDocumentInfo.FileName;
-            if (path.FilePath.Equals(rootRelativePath.RelativePath, StringComparison.OrdinalIgnoreCase)) {
-                return projectDocumentInfo;
-            }
+    private static int ComparerDocumentFilePathRootRelative(ProjectDocumentInfo projectDocumentInfo, string match) {
+        return string.Compare(
+             projectDocumentInfo.DocumentFilePathRootRelative.RelativePath,
+             match,
+             StringComparison.OrdinalIgnoreCase);
 
-            var projectRelativePath = rootRelativePath.GetFileNameProjectRebased(projectDocumentInfo.ProjectInfo);
-            if (path.FilePath.Equals(projectRelativePath.RelativePath, StringComparison.OrdinalIgnoreCase)) {
-                return projectDocumentInfo;
+    }
+
+    private static int ComparerDocumentFilePathProjectRelative(ProjectDocumentInfo projectDocumentInfo, string match) {
+        return string.Compare(
+             projectDocumentInfo.DocumentFilePathProjectRelative.RelativePath,
+             match,
+             StringComparison.OrdinalIgnoreCase);
+
+    }
+
+    public ProjectDocumentInfo? FindProjectDocumentInfo(PathData path) {
+        return this.FindProjectDocumentInfo(path.FilePath);
+    }
+
+    public ProjectDocumentInfo? FindProjectDocumentInfo(string filePath) {
+        var resultDetailsRoot = this._SolutionData.DetailsRoot.CreateWithRelativePath(filePath);
+        var resultDetailsFolder = this._SolutionData.DetailsFolder.CreateWithRelativePath(filePath);
+        {
+            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoRootRelative();
+            var index = listProjectDocumentInfo.BinarySearch(resultDetailsRoot.RelativePath!, ComparerDocumentFilePathRootRelative);
+            if (index >= 0) {
+                return listProjectDocumentInfo[index];
             }
         }
+        {
+            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoProjectRelative();
+            var index = listProjectDocumentInfo.BinarySearch(resultDetailsFolder.RelativePath!, ComparerDocumentFilePathProjectRelative);
+            if (index >= 0) {
+                return listProjectDocumentInfo[index];
+            }
+        }
+        /*
+        {
+            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoProjectRootRelative();
+
+            foreach (var projectDocumentInfo in listProjectDocumentInfo) {
+
+                if (path.FilePath.Equals(
+                    projectDocumentInfo.DocumentFilePathRootRelative.RelativePath, StringComparison.OrdinalIgnoreCase)) {
+                    return projectDocumentInfo;
+                }
+
+                if (path.FilePath.Equals(
+                    projectDocumentInfo.DocumentFilePathProjectRelative.RelativePath, StringComparison.OrdinalIgnoreCase)) {
+                    return projectDocumentInfo;
+                }
+            }
+        }
+        */
         return null;
     }
 

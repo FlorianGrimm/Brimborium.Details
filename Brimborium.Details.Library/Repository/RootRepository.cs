@@ -83,12 +83,14 @@ public class RootRepository : IRootRepository {
                 projectRepository,
                 documentRepository
             );
-            return new RootRepositorySnapshot(
+            var result = new RootRepositorySnapshot(
                 this._SolutionData,
                 projectRepository,
                 projectDocumentRepository,
                 documentRepository
                 );
+            result.Initialize();
+            return result;
         }
     }
 

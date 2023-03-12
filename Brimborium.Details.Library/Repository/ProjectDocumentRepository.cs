@@ -46,44 +46,9 @@ public class ProjectDocumentRepository {
                 projectRepository,
                 documentRepository
                 );
+            result.Initialize();
             return result;
         }
-    }
-}
-
-public class ProjectDocumentRepositorySnapshot {
-    private readonly SolutionData _SolutionData;
-    private readonly Dictionary<ProjectDocumentID, ProjectDocumentData> _Dictionary;
-    private readonly ProjectRepositorySnapshot _ProjectRepository;
-    private readonly DocumentRepositorySnapshot _DocumentRepository;
-
-    public ProjectDocumentRepositorySnapshot(
-        SolutionData solutionData,
-        Dictionary<ProjectDocumentID,
-        ProjectDocumentData> dictionary,
-        ProjectRepositorySnapshot projectRepository,
-        DocumentRepositorySnapshot documentRepository) {
-        this._SolutionData = solutionData;
-        this._Dictionary = dictionary;
-        this._ProjectRepository = projectRepository;
-        this._DocumentRepository = documentRepository;
-    }
-
-    private List<ProjectDocumentInfo>? _GetAllProjectDocumentInfo;
-    public List<ProjectDocumentInfo> GetAllProjectDocumentInfo() {
-        if (this._GetAllProjectDocumentInfo is not null) {
-            return this._GetAllProjectDocumentInfo;
-        }
-        var result = new List<ProjectDocumentInfo>();
-        foreach (var item in this._Dictionary.Values) {
-            if (this._ProjectRepository.TryGetByAbsoluteFilePath(item.Project, out var projectData)
-                && this._DocumentRepository.TryGetByAbsoluteFilePath(item.Document, out var documentData)) {
-                if (documentData.DocumentInfo is not null) {
-                    result.Add(new ProjectDocumentInfo(projectData, documentData.DocumentInfo));
-                }
-            }
-        }
-        return this._GetAllProjectDocumentInfo = result;
     }
 }
 
@@ -97,3 +62,89 @@ public record ProjectDocumentData(
     ) {
     public ProjectDocumentID GetProjectDocumentID() => new ProjectDocumentID(this.Project, this.Document);
 }
+
+public class ProjectDocumentRepositorySnapshot {
+    private readonly SolutionData _SolutionData;
+    private readonly Dictionary<ProjectDocumentID, ProjectDocumentData> _DictionaryProjectDocumentData;
+    private readonly ProjectRepositorySnapshot _ProjectRepository;
+    private readonly DocumentRepositorySnapshot _DocumentRepository;
+
+    private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoProjectRootRelative;
+    private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoProjectProjectRelative;
+    private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoRootRelative;
+    private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoProjectRelative;
+
+    public ProjectDocumentRepositorySnapshot(
+        SolutionData solutionData,
+        Dictionary<ProjectDocumentID, ProjectDocumentData> dictionaryProjectDocumentData,
+        ProjectRepositorySnapshot projectRepository,
+        DocumentRepositorySnapshot documentRepository) {
+        this._SolutionData = solutionData;
+        this._DictionaryProjectDocumentData = dictionaryProjectDocumentData;
+        this._ProjectRepository = projectRepository;
+        this._DocumentRepository = documentRepository;
+
+        var listProjectDocumentInfo = new List<ProjectDocumentInfo>();
+        foreach (var projectDocumentData in dictionaryProjectDocumentData.Values) {
+            if (this._ProjectRepository.TryGetByAbsoluteFilePath(projectDocumentData.Project, out var projectData)
+                && this._DocumentRepository.TryGetByAbsoluteFilePath(projectDocumentData.Document, out var documentData)) {
+                if (documentData.DocumentInfo is not null) {
+                    FileName documentFilePathRootRelative = documentData.DocumentInfo.FileName.Rebase(
+                            this._SolutionData.DetailsRoot)
+                        ?? throw new InvalidOperationException("FilePathRootRelative is null.");
+                    FileName documentFilePathProjectRelative = documentData.DocumentInfo.FileName.Rebase(
+                            projectData.FolderPath)
+                        ?? throw new InvalidOperationException("FilePathProjectRelative is null.");
+                    var projectDocumentInfo = new ProjectDocumentInfo(
+                        projectData.FilePath,
+                        documentFilePathRootRelative,
+                        documentFilePathProjectRelative,
+                        projectData,
+                        documentData.DocumentInfo);
+                    listProjectDocumentInfo.Add(projectDocumentInfo);
+                }
+            }
+        }
+
+        this._ListProjectDocumentInfoProjectRootRelative = new List<ProjectDocumentInfo>(
+            listProjectDocumentInfo
+                .OrderBy(item => item.ProjectFilePathRootRelative.AbsolutePath)
+                .ThenBy(item => item.DocumentFilePathRootRelative.RelativePath));
+
+        this._ListProjectDocumentInfoProjectProjectRelative = new List<ProjectDocumentInfo>(
+            listProjectDocumentInfo
+                .OrderBy(item => item.ProjectFilePathRootRelative.AbsolutePath)
+                .ThenBy(item => item.DocumentFilePathProjectRelative.RelativePath));
+
+        this._ListProjectDocumentInfoRootRelative = new List<ProjectDocumentInfo>(
+            listProjectDocumentInfo
+                .OrderBy(item => item.ProjectFilePathRootRelative.RelativePath));     
+
+        this._ListProjectDocumentInfoProjectRelative = new List<ProjectDocumentInfo>(
+            listProjectDocumentInfo
+                .OrderBy(item => item.DocumentFilePathProjectRelative.RelativePath));                
+    }
+
+    internal void Initialize() {
+    }
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRootRelative() 
+        => this._ListProjectDocumentInfoProjectRootRelative;
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectProjectRelative() 
+        => this._ListProjectDocumentInfoProjectProjectRelative;
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoRootRelative() 
+        => this._ListProjectDocumentInfoRootRelative;
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRelative() 
+        => this._ListProjectDocumentInfoProjectRelative;
+}
+
+public readonly record struct ProjectDocumentInfo(
+    FileName ProjectFilePathRootRelative,
+    FileName DocumentFilePathRootRelative,
+    FileName DocumentFilePathProjectRelative,
+    ProjectData Project,
+    IDocumentInfo Document);
+    

@@ -16,6 +16,12 @@ public class RootRepositorySnapshot {
         this._DocumentRepository = documentRepository;
     }
 
+    internal void Initialize() {
+        this._ProjectRepository.Initialize();
+        this._ProjectDocumentRepository.Initialize();
+        this._DocumentRepository.Initialize();
+    }
+
     public ProjectRepositorySnapshot ProjectRepository => this._ProjectRepository;
     public ProjectDocumentRepositorySnapshot ProjectDocumentRepository  => this._ProjectDocumentRepository; 
     public DocumentRepositorySnapshot DocumentRepository => this._DocumentRepository;

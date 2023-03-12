@@ -57,10 +57,13 @@ public class DocumentRepositorySnapshot {
     private readonly Dictionary<FileName, DocumentData> _DictDocumentData;
 
     public DocumentRepositorySnapshot(
-        SolutionData solutionData, 
+        SolutionData solutionData,
         Dictionary<FileName, DocumentData> dictDocumentData) {
         this._SolutionData = solutionData;
         this._DictDocumentData = dictDocumentData;
+    }
+
+    internal void Initialize() {
     }
 
     private List<IDocumentInfo>? _GetAllDocumentInfo;
@@ -101,13 +104,15 @@ public class DocumentRepositorySnapshot {
             if (item.Value.DocumentInfo?.ListConsumes is List<SourceCodeData> list) {
                 foreach (var scd in list) {
                     result.Add(new DocumentInfoSourceCodeMatch(
-                        item.Value.DocumentInfo, 
+                        item.Value.DocumentInfo,
                         scd
                         ));
                 }
             }
         }
-        return this._GetAllConsumes = result;
+        return this._GetAllConsumes
+            = new List<DocumentInfoSourceCodeMatch>(
+                result.OrderBy(item => item.DocumentInfo.FileName.RelativePath));
     }
 
     private List<DocumentInfoSourceCodeMatch>? _GetAllProvides;
@@ -120,21 +125,23 @@ public class DocumentRepositorySnapshot {
             if (item.Value.DocumentInfo?.ListProvides is List<SourceCodeData> list) {
                 foreach (var scd in list) {
                     result.Add(new DocumentInfoSourceCodeMatch(
-                        item.Value.DocumentInfo, 
+                        item.Value.DocumentInfo,
                         scd
                         ));
                 }
             }
         }
-        return this._GetAllProvides = result;
+        return this._GetAllProvides
+            = new List<DocumentInfoSourceCodeMatch>(
+                result.OrderBy(item => item.DocumentInfo.FileName.RelativePath));
     }
 
     public bool TryGetByAbsoluteFilePath(
         FileName filePath,
-        [MaybeNullWhen(false)] out DocumentData documentData) 
+        [MaybeNullWhen(false)] out DocumentData documentData)
         => this._DictDocumentData.TryGetValue(filePath, out documentData);
 }
 
 public record DocumentData(
     FileName FilePath,
-    IDocumentInfo? DocumentInfo) ;
+    IDocumentInfo? DocumentInfo);

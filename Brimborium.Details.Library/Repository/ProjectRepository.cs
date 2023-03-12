@@ -111,6 +111,9 @@ public class ProjectRepositorySnapshot {
         }
     }
 
+    internal void Initialize() {
+    }
+
     public bool TryGetByAbsoluteFilePath(
         FileName project,
         [MaybeNullWhen(false)] out ProjectData projectData) 
