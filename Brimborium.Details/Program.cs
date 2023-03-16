@@ -9,7 +9,7 @@ public static class Program {
         var appSettings = new AppSettings();
         var hostBuilder = Host.CreateDefaultBuilder(args);
 
-#if DEBUG
+#if false
         hostBuilder.ConfigureAppConfiguration(
             (configurationBuilder) => {
                 configurationBuilder.AddUserSecrets("Brimborium.Details");
@@ -20,7 +20,6 @@ public static class Program {
             (configurationBuilder) => {
                 var configuration = configurationBuilder.Build();
                 configuration.Bind(appSettings);
-                //appSettings.Configure(configuration);
                 AppSettings.ConfigureAppSettings(configurationBuilder, configuration, appSettings);
                 
             });

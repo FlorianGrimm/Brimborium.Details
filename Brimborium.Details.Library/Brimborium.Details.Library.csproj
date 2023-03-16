@@ -7,8 +7,6 @@
     <RootNamespace>Brimborium.Details</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Brimborium.Registrator.Abstractions" Version="1.0.5-gcf38eabe70" />
-    <PackageReference Include="Brimborium.Text" Version="1.0.3" />
     <PackageReference Include="Markdig" Version="0.30.4" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.5.5" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="4.4.0">
@@ -25,5 +23,9 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="7.0.3" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Brimborium.Registrator\Brimborium.Registrator.Abstractions\Brimborium.Registrator.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Brimborium.Text\Brimborium.Text\Brimborium.Text.csproj" />
   </ItemGroup>
 </Project>

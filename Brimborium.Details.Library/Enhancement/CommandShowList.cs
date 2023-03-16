@@ -3,7 +3,12 @@
 //
 [Transient]
 public class CommandShowList : IMatchCommand {
-    public CommandShowList() {
+    private readonly ILogger<CommandShowList> _Logger;
+
+    public CommandShowList(
+        ILogger<CommandShowList> logger
+        ) {
+        this._Logger = logger;
     }
 
     public bool IsMatching(DetailData matchInfo)
@@ -19,15 +24,18 @@ public class CommandShowList : IMatchCommand {
 
         var path = matchInfo.Path;
         if (path is null || path.IsEmpty()) {
-            // § todo.md
-            var relativePath =
-                markdownDocumentWriter.MarkdownDocumentInfo.FileName.Rebase(
-                    markdownDocumentWriter.WriterContext.DetailsFolder
-                )?.RelativePath
-                ?? string.Empty;
-            path = PathData.Parse(relativePath);
+            // § todo.md why does matchInfo.MatchPath not work? why is contentpath empty?
+            path = matchInfo.MatchPath.WithLine(0);
+            //var relativePath =
+            //    markdownDocumentWriter.MarkdownDocumentInfo.FileName.Rebase(
+            //        markdownDocumentWriter.WriterContext.DetailsFolder
+            //    )?.RelativePath
+            //    ?? string.Empty;
+            //path = PathData.Parse(relativePath);
         }
 
+        this._Logger.LogDebug("Show-List: {0}", path);
+        
         var lstMatch = detailContext.QueryPath(path);
 
         //ListBlock? target = default;
@@ -71,10 +79,16 @@ public class CommandShowList : IMatchCommand {
                     if (match.SourceCodeMatch.DetailData.Line > 0) {
                         sb.Append("#").Append(match.SourceCodeMatch.DetailData.Line);
                     }
+                    if (!string.IsNullOrEmpty(match.SourceCodeMatch.DetailData.Comment)) { 
+                        sb.Append(" § ").Append(match.SourceCodeMatch.DetailData.Comment);
+                    }
                 } else {
                     sb.Append("detailscode://").Append(match.SourceCodeMatch.FilePath.RelativePath);
                     if (match.SourceCodeMatch.DetailData.Line > 0) {
                         sb.Append("#").Append(match.SourceCodeMatch.DetailData.Line);
+                    }
+                    if (!string.IsNullOrEmpty(match.SourceCodeMatch.DetailData.Comment)) {
+                        sb.Append(" § ").Append(match.SourceCodeMatch.DetailData.Comment);
                     }
                 }
                 sb.AppendLine();

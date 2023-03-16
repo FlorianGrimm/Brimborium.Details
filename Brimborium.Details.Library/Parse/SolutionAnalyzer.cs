@@ -53,51 +53,89 @@ public class SolutionAnalyzer
     public async Task AnalyzeAsync(
         CancellationToken cancellationToken) {
         var parserSinkContext = this._RootRepository.GetParserSinkContext();
-        {
-            var csharpContext = await this._CSharpService.PrepareSolutionCSharp(parserSinkContext, cancellationToken);
-            var markdownContext = await this._MarkdownService.PrepareSolutionDetail(parserSinkContext, cancellationToken);
-
-            var t1 = csharpContext is null
-                ? Task.CompletedTask
-                : this._CSharpService.ParseCSharp(parserSinkContext, csharpContext, cancellationToken);
-            await t1;
-
-            var t2 = markdownContext is null
-                ? Task.CompletedTask
-                : this._MarkdownService.ParseDetail(parserSinkContext, markdownContext, cancellationToken);
-            await t2;
-            // § todo.md
-
-            var t3 = this._TypeScriptService.ParseTypeScript(parserSinkContext, cancellationToken);
-            await t3;
-
-            await Task.WhenAll(t1, t2, t3)
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
-            // HACK ONLY
+        CSharpContext? csharpContext = default;
+        try {
             {
-                var targetPath = parserSinkContext.DetailsRoot.CreateWithRelativePath("detailContext.json").AbsolutePath;
-                Console.Out.WriteLine($"targetPath: {targetPath}");
-                if (targetPath is not null) {
-                    await File.WriteAllTextAsync(
-                        targetPath,
-                        JsonSerializer.Serialize(parserSinkContext, new JsonSerializerOptions() { WriteIndented = true }),
-                        cancellationToken)
-                        .ConfigureAwait(false);
+                csharpContext = await this._CSharpService.PrepareSolutionCSharp(parserSinkContext, cancellationToken);
+                var markdownContext = await this._MarkdownService.PrepareSolutionDetail(parserSinkContext, cancellationToken);
+
+                var t1 = csharpContext is null
+                    ? Task.CompletedTask
+                    : this._CSharpService.ParseCSharp(parserSinkContext, csharpContext, cancellationToken);
+                await t1;
+
+                var t2 = markdownContext is null
+                    ? Task.CompletedTask
+                    : this._MarkdownService.ParseDetail(parserSinkContext, markdownContext, cancellationToken);
+                await t2;
+                // § todo.md
+
+                var t3 = this._TypeScriptService.ParseTypeScript(parserSinkContext, cancellationToken);
+                await t3;
+
+                await Task.WhenAll(t1, t2, t3)
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+
+                // HACK ONLY
+                {
+                    var detailsRoot = this._RootRepository.GetSolutionData().DetailsRoot;
+                    var targetPath = parserSinkContext.DetailsRoot.CreateWithRelativePath("detailsRootRepository.json").AbsolutePath;
+                    Console.Out.WriteLine($"targetPath: {targetPath}");
+                    if (targetPath is not null) {
+                        await File.WriteAllTextAsync(
+                            targetPath,
+                            JsonSerializer.Serialize(this._RootRepository, new JsonSerializerOptions() { WriteIndented = true }),
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
-        }
-        {
-            var writerContext = this._RootRepository.GetWriterContext(parserSinkContext);
-            if (writerContext is null) {
-                return;
-            }
-            var t1 = this._MarkdownService.WriteDetail(writerContext, cancellationToken);
-            var t2 = this._CSharpService.WriteDetail(writerContext, cancellationToken);
+            {
+                var writerContext = this._RootRepository.GetWriterContext(parserSinkContext);
+                if (writerContext is null) {
+                    return;
+                }
 
-            await Task.WhenAll(t1, t2)
-                .WaitAsync(cancellationToken)
-                .ConfigureAwait(false);
+                // HACK ONLY
+                {
+                    var detailsRoot = this._RootRepository.GetSolutionData().DetailsRoot;
+                    var targetPath = detailsRoot.CreateWithRelativePath("detailsWriterContext.json").AbsolutePath;
+                    Console.Out.WriteLine($"targetPath: {targetPath}");
+                    if (targetPath is not null) {
+                        /*
+                        await File.WriteAllTextAsync(
+                            targetPath,
+                            JsonSerializer.Serialize(writerContext!, typeof(WriterContext), WriterContextJsonContext.Default),
+                            cancellationToken)
+                            .ConfigureAwait(false);
+
+                         */
+                        await File.WriteAllTextAsync(
+                            targetPath,
+                            JsonSerializer.Serialize<WriterContext>(writerContext,
+                            new JsonSerializerOptions(JsonSerializerOptions.Default) {
+                                WriteIndented = true,
+                                Converters ={
+                                new JsonStringEnumConverter()
+                                }
+                            }),
+                            cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                }
+
+                var t1 = this._MarkdownService.WriteDetail(writerContext, cancellationToken);
+                var t2 = this._CSharpService.WriteDetail(writerContext, cancellationToken);
+
+                await Task.WhenAll(t1, t2)
+                    .WaitAsync(cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        } finally {
+            if (csharpContext is not null) {
+                csharpContext.Dispose();
+            }
         }
     }
 }

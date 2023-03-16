@@ -1,4 +1,4 @@
-﻿namespace Brimborium.Details.Library.Tests;
+﻿namespace Brimborium.Details.Parse;
 
 public class FileNameTests {
     [Fact]

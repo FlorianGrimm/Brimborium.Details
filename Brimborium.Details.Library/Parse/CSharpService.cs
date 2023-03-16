@@ -1,9 +1,9 @@
-using Brimborium.Details.Utility;
+using System.Runtime.CompilerServices;
 
 namespace Brimborium.Details.Parse;
 
 [Transient]
-public class CSharpService {
+public partial class CSharpService {
     private static bool _RegisterDefaultsIsCalled = false;
     public static void RegisterDefaults() {
         if (!_RegisterDefaultsIsCalled) {
@@ -13,24 +13,73 @@ public class CSharpService {
     }
 
     private static Regex regexSimple = new Regex("//[ \t]*§([^\\r\\n]+)");
+    
+    private readonly ILogger<CSharpService> _Logger;
 
-    public CSharpService() {
+    public CSharpService(
+        ILogger<CSharpService> logger
+        ) {
+        this._Logger = logger;
     }
 
+    [LoggerMessage(
+        EventId = (int)LogMessageId.SolutionLoadStart,
+        EventName = nameof(LogMessageId.SolutionLoadStart),
+        Level = LogLevel.Information,
+        Message = "Loading solution '{solutionFile}'")]
+    partial void LogSolutionLoadStart(string? solutionFile);
+
+    [LoggerMessage(
+        EventId = (int)LogMessageId.SolutionLoadSuccess,
+        EventName = nameof(LogMessageId.SolutionLoadSuccess),
+        Level = LogLevel.Information,
+        Message = "Solution loaded '{solutionFile}'")]
+    partial void LogSolutionLoadSuccess(string? solutionFile);
+    
+    [LoggerMessage(
+        EventId = (int)LogMessageId.SolutionLoadFailed,
+        EventName = nameof(LogMessageId.SolutionLoadFailed),
+        Level = LogLevel.Warning,
+        Message = "Loading solution failed '{solutionFile}'")]
+    partial void LogSolutionLoadFailed(string? solutionFile);
+
+    [LoggerMessage(
+        EventId = (int)LogMessageId.SolutionWorkspaceFailed,
+        EventName = nameof(LogMessageId.SolutionWorkspaceFailed),
+        Level = LogLevel.Warning,
+        Message = "Loading solution failed '{solutionFile}': {message}")]
+    partial void LogSolutionWorkspaceFailed(string? solutionFile, string? message);
+
+    [LoggerMessage(
+        EventId = (int)LogMessageId.ProjectLoadSuccess,
+        EventName = nameof(LogMessageId.ProjectLoadSuccess),
+        Level = LogLevel.Information,
+        Message = "Loaded Project: {projectName} (ListMainProjectName).")]
+    partial void LogProjectLoadSuccess(string? projectName);
+
+    [LoggerMessage(
+        EventId = (int)LogMessageId.ProjectLoadFailed,
+        EventName = nameof(LogMessageId.ProjectLoadFailed),
+        Level = LogLevel.Warning,
+        Message = "Cannot load {projectName} (ListMainProjectName)- {reason}.")]
+    partial void LogProjectLoadFailed(string? projectName, string reason);
 
     public async Task<CSharpContext?> PrepareSolutionCSharp(
-        ParserSinkContext parserSinkContext,
+        IParserSinkContext parserSinkContext,
         CancellationToken cancellationToken) {
         var solutionInfo = parserSinkContext.SolutionData;
         var solutionFile = solutionInfo.SolutionFile.AbsolutePath;
         if (solutionFile is null) { return null; }
-        Console.WriteLine($"Loading solution '{solutionFile}'");
+        this.LogSolutionLoadStart(solutionFile);
         RegisterDefaults();
 
-        using var workspace = MSBuildWorkspace.Create();
-        workspace.WorkspaceFailed += (sender, args) => Console.WriteLine(args.Diagnostic.Message);
+        var workspace = MSBuildWorkspace.Create();
+        workspace.WorkspaceFailed += (sender, args) => {
+            //Console.WriteLine(args.Diagnostic.Message);
+            this.LogSolutionWorkspaceFailed(solutionFile, args.Diagnostic.Message);
+        };
         var solution = await workspace.OpenSolutionAsync(solutionFile);
-
+        
         /*
         foreach (var project in solution.Projects) {
             if (project is not null) {
@@ -44,12 +93,12 @@ public class CSharpService {
         foreach (var projectName in solutionInfo.ListMainProjectName) {
             var project = solution.Projects.Where(project => project.Name == projectName).FirstOrDefault();
             if (project is null) {
-                Console.Out.WriteLine($"WARNING: ListMainProjectName {projectName} - not found");
+                this.LogProjectLoadFailed(projectName, "not found");
                 continue;
             } else {
-                Console.Out.WriteLine($"INFO: ListMainProjectName {project.Name} - {project.Id}");
                 lstMainProject.Add(project);
                 queue.Enqueue(project);
+                this.LogProjectLoadSuccess(projectName);
             }
         }
         if (lstMainProject.Count == 0) {
@@ -61,8 +110,9 @@ public class CSharpService {
 
         // TODO: make configurable
         //var filterPath = System.IO.Path.Combine(SolutionInfo.DetailsRoot, "src");
-        var filterPath = solutionInfo.DetailsRoot.AbsolutePath ?? string.Empty;
-        Console.Out.WriteLine($"INFO: filterPath {filterPath}");
+        var filterPath = solutionInfo.DetailsRoot.AbsolutePath
+            ?? throw new InvalidOperationException("SolutionInfo.DetailsRoot is empty.");
+        // Console.Out.WriteLine($"INFO: filterPath {filterPath}");
 
         var projectDependencyGraph = solution.GetProjectDependencyGraph();
         var lstRelevantProject = new List<Project>();
@@ -74,16 +124,16 @@ public class CSharpService {
             }
             hsRelevantProject.Add(project.Id);
             if (project.FilePath is null) {
-                Console.Out.WriteLine($"WARNING: ProjectDependency {project.Name} - {project.Id} - no file path");
+                this.LogProjectLoadFailed(project.Name, "ProjectDependency  - no file path.");
                 continue;
             }
-            if (project.FilePath.EndsWith("Tests.csproj", StringComparison.InvariantCultureIgnoreCase)
-                || project.FilePath.EndsWith("Test.csproj", StringComparison.InvariantCultureIgnoreCase)) {
-                Console.Out.WriteLine($"INFO: ProjectDependency {project.Name} - {project.Id} - skipped");
-                continue;
-            }
+            //if (project.FilePath.EndsWith("Tests.csproj", StringComparison.InvariantCultureIgnoreCase)
+            //    || project.FilePath.EndsWith("Test.csproj", StringComparison.InvariantCultureIgnoreCase)) {
+            //    Console.Out.WriteLine($"INFO: ProjectDependency {project.Name} - {project.Id} - skipped");
+            //    continue;
+            //}
             if (!project.FilePath.StartsWith(filterPath, StringComparison.InvariantCultureIgnoreCase)) {
-                Console.Out.WriteLine($"INFO: ProjectDependency {project.Name} - {project.Id} - skipped");
+                this.LogProjectLoadFailed(project.Name, "skipped.");
                 continue;
             }
             lstRelevantProject.Add(project);
@@ -101,11 +151,9 @@ public class CSharpService {
         var lstRelevantProjectProjectInfo = new List<RoslynProjectProjectData>();
         foreach (var project in lstRelevantProject) {
             if (project.FilePath is null) {
-                Console.Error.WriteLine($"ERROR: project.FilePath is null");
+                this.LogProjectLoadFailed(project.Name, "project.FilePath is null.");
                 continue;
             }
-
-
 
             var lstDocument = new List<FileName>();
             foreach (var document in project.Documents) {
@@ -131,13 +179,14 @@ public class CSharpService {
                     projectData));
         }
         var csharpContext = new CSharpContext(
+            workspace,
             solution,
             lstRelevantProjectProjectInfo);
         return csharpContext;
     }
 
     public async Task ParseCSharp(
-        ParserSinkContext parserSinkContext,
+        IParserSinkContext parserSinkContext,
         CSharpContext csharpContext,
         CancellationToken cancellationToken
         ) {
@@ -230,7 +279,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                     var documentInfo = new CSharpDocumentInfo(
                             parserSinkContext.SolutionData.DetailsRoot.CreateWithAbsolutePath(document.FilePath ?? string.Empty)
                             );
-                    await parseDocument(
+                    await ParseDocument(
                         solutionInfo, solution, compilation, document, documentInfo);
                     lock (listCSharpDocumentInfo) {
                         listCSharpDocumentInfo.Add(documentInfo);
@@ -306,7 +355,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
 #endif
     }
 
-    private async Task parseDocument(
+    public async Task ParseDocument(
         SolutionData solutionData,
         Solution solution,
         Compilation compilation,
@@ -323,35 +372,37 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             var sourceCode = sourceText.ToString();
             if (sourceCode.Contains('§')) {
                 foreach (Match match in regexSimple.Matches(sourceCode)) {
-                    var ownMatchPath = PathData.Create(documentInfo.FileName.RelativePath ?? string.Empty, string.Empty);
-                    var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath, "//", 0, match.Index);
-                    if (matchInfo is null) { continue; }
+                    var ownMatchPath = PathData.Create(documentInfo.FileName.RelativePath??string.Empty, 0, String.Empty);
+                    var detailData = MatchUtility.ParseMatch(match.Value, ownMatchPath, "//", 0, match.Index);
+                    if (detailData is null) { continue; }
 
+                    if (MatchInfoKind.Paragraph == detailData.Kind) { 
+                    }
                     var sourceCodeMatch = new SourceCodeData(
                         documentInfo.FileName,
-                        DetailData: matchInfo
+                        DetailData: detailData
                     );
                     var syntaxTree = await document.GetSyntaxTreeAsync();
                     if (syntaxTree is null) {
                         Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxTree is null");
 
-                        (matchInfo.IsCommand
+                        (detailData.IsCommand
                             ? documentInfo.GetLstConsumes()
                             : documentInfo.GetLstProvides()
                             ).Add(sourceCodeMatch);
                         continue;
                     }
 
-                    var startIndex = matchInfo.MatchRange.Start.Value;
+                    var startIndex = detailData.MatchRange.Start.Value;
                     var textSpan = new Microsoft.CodeAnalysis.Text.TextSpan(
                         startIndex,
-                        matchInfo.MatchLength);
-                    var location = syntaxTree.GetLocation(textSpan);
+                        detailData.MatchLength);
+                    //var location = syntaxTree.GetLocation(textSpan);
                     var lineSpan = syntaxTree.GetLineSpan(textSpan);
                     var line = lineSpan.StartLinePosition.Line;
-                    matchInfo = matchInfo with { Line = line };
+                    detailData = detailData with { Line = line };
                     sourceCodeMatch = sourceCodeMatch with {
-                        DetailData = matchInfo
+                        DetailData = detailData
                     };
                     var syntaxToken = syntaxTree.GetRoot().FindToken(
                         startIndex, true);
@@ -359,7 +410,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                     var syntaxNode = syntaxTree.GetRoot().FindNode(syntaxToken.GetLocation().SourceSpan);
                     if (syntaxNode is null) {
                         Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} syntaxNode is null");
-                        (matchInfo.IsCommand
+                        (detailData.IsCommand
                           ? documentInfo.GetLstConsumes()
                           : documentInfo.GetLstProvides()
                           ).Add(sourceCodeMatch);
@@ -370,7 +421,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
 
                     if (symbol is null) {
                         Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} symbol is null");
-                        (matchInfo.IsCommand
+                        (detailData.IsCommand
                           ? documentInfo.GetLstConsumes()
                           : documentInfo.GetLstProvides()
                           ).Add(sourceCodeMatch);
@@ -381,7 +432,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
 
                     if (fullName is null) {
                         Console.Out.WriteLine($"INFO : {document.Name} - {document.FilePath} fullName is null");
-                        (matchInfo.IsCommand
+                        (detailData.IsCommand
                           ? documentInfo.GetLstConsumes()
                           : documentInfo.GetLstProvides()
                           ).Add(sourceCodeMatch);
@@ -395,10 +446,16 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                             Namespace: namespaceName,
                             Type: typeName,
                             Method: methodName);
+                    var matchPath = PathData.Create(documentInfo.FileName.RelativePath ?? string.Empty, line, fullName);
+                    detailData = detailData with {
+                        MatchPath = matchPath
+                    };
                     sourceCodeMatch = sourceCodeMatch with {
+                        DetailData = detailData,
+                        
                         CSContext = csContext
                     };
-                    (matchInfo.IsCommand
+                    (detailData.IsCommand
                           ? documentInfo.GetLstConsumes()
                           : documentInfo.GetLstProvides()
                           ).Add(sourceCodeMatch);
@@ -474,13 +531,18 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
         WriterContext writerContext,
         CancellationToken cancellationToken) {
         // § todo.md
-        Console.WriteLine($"throw new NotImplementedException();");
+        Console.WriteLine($"CSharpService.WriteDetail throw new NotImplementedException();");
         await Task.CompletedTask;
         
     }
 }
 
 public record CSharpContext(
+    MSBuildWorkspace Workspace,
     Solution Solution,
     List<RoslynProjectProjectData> lstRelevantProjectProjectInfo
-    );
+    ) : System.IDisposable {
+    public void Dispose() {
+        Workspace.Dispose();
+    }
+};

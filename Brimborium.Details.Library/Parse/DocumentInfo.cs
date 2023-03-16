@@ -6,7 +6,7 @@ public record DocumentInfo(
 ) {
     public DocumentInfoPersitence PreSave(FileName detailsRoot) {
         return new DocumentInfoPersitence(
-            this.FilePath.Rebase(detailsRoot)?.RelativePath ?? this.FilePath.ToString(),
+            this.FilePath.Rebase(detailsRoot)?.RelativePath?.ToString() ?? this.FilePath.ToString(),
             this.Language
         );
     }

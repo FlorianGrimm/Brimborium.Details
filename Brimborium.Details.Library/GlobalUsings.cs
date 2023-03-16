@@ -11,6 +11,7 @@ global using global::System.Threading;
 global using global::System.Threading.Tasks;
 global using global::System.Text.Json;
 global using global::System.Text.Json.Serialization;
+global using global::System.Text.Json.Serialization.Metadata;
 global using global::System.Text.RegularExpressions;
 
 global using global::Markdig;

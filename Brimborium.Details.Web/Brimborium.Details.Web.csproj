@@ -9,10 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Brimborium.Registrator" Version="1.0.5-gcf38eabe70" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\Brimborium.Registrator\Brimborium.Registrator\Brimborium.Registrator.csproj" />
     <ProjectReference Include="..\Brimborium.Details.Library\Brimborium.Details.Library.csproj" />
   </ItemGroup>
 

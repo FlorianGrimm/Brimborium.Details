@@ -1,5 +1,6 @@
 ﻿namespace Brimborium.Details.Parse;
 
+[System.Text.Json.Serialization.JsonDerivedType(typeof(PathData), "PathData")]
 [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public class PathData : IEquatable<PathData> {
 
@@ -7,43 +8,38 @@ public class PathData : IEquatable<PathData> {
     private static char Separator = '#';
     private static char[] ArraySeparator = new char[] { '#' };
     public static PathData? _Empty;
-    public static PathData Empty => _Empty ??= new PathData(string.Empty, string.Empty, string.Empty);
+    public static PathData Empty => _Empty ??= new PathData(string.Empty, string.Empty, 0, string.Empty);
 
     public static PathData Parse(string logicalPath)
         => Parse(logicalPath.AsStringSlice());
 
     public static PathData Parse(StringSlice logicalPath) {
         var (filename, partLine, partContent) = Split(logicalPath);
-        return Create(logicalPath, filename, partContent);
+        if (!(!partLine.IsNullOrEmpty() && int.TryParse(partLine.AsSpan(), out var line))) {
+            line = 0;
+        }
+        return Create(logicalPath, filename, line, partContent);
 
         static (StringSlice filename, StringSlice partLine, StringSlice partContent) Split(StringSlice logicalPath) {
             var (filePath, tail) = logicalPath.SplitInto(ArraySeparator);
             if (tail.IsNullOrEmpty()) {
                 return (filePath, StringSlice.Empty, StringSlice.Empty);
             }
-            var (part1, part2) = logicalPath.SplitInto(ArraySeparator);
-            if (!part1.IsNullOrEmpty() && !part2.IsNullOrEmpty()) {
+            var (part1, part2) = tail.SplitInto(ArraySeparator);
+
+            part1 = part1.Trim();
+            part2 = part2.Trim();
+
+            if (!part2.IsNullOrEmpty()) {
                 return (filePath, part1, part2);
             }
-
-            var matchNumber = true;
-            {
-                var spanPart1 = part1.AsSpan();
-                var idx = 0;
-                for (; idx < spanPart1.Length; idx++) {
-                    if (char.IsWhiteSpace(spanPart1[idx])) { continue; }
-                    break;
-                }
-                for (; idx < spanPart1.Length; idx++) {
-                    if (char.IsAsciiDigit(spanPart1[idx])) { continue; }
-                }
-                for (; idx < spanPart1.Length; idx++) {
-                    if (char.IsWhiteSpace(spanPart1[idx])) { continue; }
-                }
-                matchNumber = idx + 1 == spanPart1.Length;
+            // part 2 is empty
+            if (part1.IsNullOrEmpty()) {
+                return (filePath, StringSlice.Empty, StringSlice.Empty);
             }
 
-            if (matchNumber) {
+            // part1 contains only digits?
+            if (part1.TrimWhile((value, _) => char.IsDigit(value) ? 0 : +1).IsNullOrEmpty()) {
                 return (filePath, part1, StringSlice.Empty);
             } else {
                 return (filePath, StringSlice.Empty, part1);
@@ -52,50 +48,59 @@ public class PathData : IEquatable<PathData> {
     }
 
     public static PathData Create(string filename, string contentPath) {
-        return Create(StringSlice.Empty, filename.AsStringSlice(), contentPath.AsStringSlice());
+        return Create(StringSlice.Empty, filename.AsStringSlice(), 0, contentPath.AsStringSlice());
     }
 
-    public static PathData Create(StringSlice logicalPath, StringSlice filename, StringSlice contentPath) {
-        var spanFilename = filename.AsSpan();
-        var spanContentPath = contentPath.AsSpan();
-        if (spanFilename.Contains('\\')) {
+    public static PathData Create(string filename, int line, string contentPath) {
+        return Create(StringSlice.Empty, filename.AsStringSlice(), line, contentPath.AsStringSlice());
+    }
+
+    public static PathData Create(StringSlice logicalPath, StringSlice filename, int line, StringSlice contentPath) {
+        if (filename.Contains('\\')) {
             throw new ArgumentException("filename contains \\");
         }
-        if (spanContentPath.Contains('\\')) {
+        if (contentPath.Contains('\\')) {
             throw new ArgumentException("contentPath contains \\");
         }
-        if (spanContentPath.Length > 0 && spanContentPath[0] == Separator) {
-            spanContentPath = spanContentPath.Slice(1);
+        if (contentPath.Length > 0 && contentPath[0] == Separator) {
+            contentPath = contentPath.Substring(1);
         }
-        if (spanContentPath.Length > 0 && spanContentPath[0] != Slash) {
-            var buffer = new char[spanContentPath.Length + 1];
+        if (contentPath.Length > 0 && contentPath[0] != Slash) {
+            var buffer = new char[contentPath.Length + 1];
             buffer[0] = Slash;
-            spanContentPath.CopyTo(buffer.AsSpan(1));
-            spanContentPath = buffer.AsSpan();
+            contentPath.AsSpan().CopyTo(buffer.AsSpan(1));
+            contentPath = new StringSlice(new string(buffer));
             logicalPath = StringSlice.Empty;
         }
+        string logicalPathValue; //= logicalPath.ToString();
 
-        if (logicalPath.IsNullOrEmpty()) {
-            if (spanFilename.Length == 0 && spanContentPath.Length == 0) {
-                logicalPath = StringSlice.Empty;
-            } else {
-                var buffer = new char[spanFilename.Length + 1 + spanContentPath.Length];
-                spanFilename.CopyTo(buffer.AsSpan());
-                buffer[spanFilename.Length] = Separator;
-                spanContentPath.CopyTo(buffer.AsSpan(spanFilename.Length + 1));
-                logicalPath = new StringSlice(new string(buffer));
-            }
+        //if (logicalPath.IsNullOrEmpty()) {
+        if (filename.Length == 0 && line == 0 && contentPath.Length == 0) {
+            return PathData.Empty;
         } else {
-            if (contentPath.Length == 0) {
-            } else if (logicalPath.Length != filename.Length + 1 + contentPath.Length) {
-                throw new ArgumentException("logicalPath.Length!= (filename.Length + partContent.Length)");
+            var sb = StringBuilderPool.GetStringBuilder();
+            sb.Append(filename);
+            sb.Append(Separator);
+            if (line > 0) {
+                sb.Append(line);
             }
+            sb.Append(Separator);
+            sb.Append(contentPath);
+            logicalPathValue = sb.ToString();
+            StringBuilderPool.ReturnStringBuilder(sb);
         }
-        var logicalPathValue = logicalPath.ToString();
-        var filenameValue = spanFilename.ToString();
-        var contentPathValue = spanContentPath.ToString();
+        //} else {
+        // TODO: this does not respect line
+        //if (contentPath.Length == 0) {
+        //} else if (logicalPath.Length != filename.Length + 1 + contentPath.Length) {
+        //    throw new ArgumentException("logicalPath.Length!= (filename.Length + partContent.Length)");
+        //}
+        //}
+        
+        var filenameValue = filename.ToString();
+        var contentPathValue = contentPath.ToString();
         return new PathData(
-            logicalPathValue, filenameValue, contentPathValue,
+            logicalPathValue, filenameValue, line, contentPathValue,
             GetContentLevel(contentPathValue), GetContentPathNormalized(contentPathValue)
             );
     }
@@ -124,8 +129,9 @@ public class PathData : IEquatable<PathData> {
     public PathData(
         string logicalPath,
         string filename,
+        int line,
         string contentPath)
-        : this(logicalPath, filename, contentPath,
+        : this(logicalPath, filename, line, contentPath,
               GetContentLevel(contentPath),
               GetContentPathNormalized(contentPath)) {
     }
@@ -133,33 +139,39 @@ public class PathData : IEquatable<PathData> {
     private PathData(
         string logicalPath,
         string filename,
+        int line,
         string contentPath,
         int contentLevel,
         string contentPathNormalized) {
         this.LogicalPath = logicalPath;
         this.FilePath = filename;
+        this.Line = line;
         this.ContentPath = contentPath;
         this.ContentLevel = contentLevel;
         this.ContentPathNormalized = contentPathNormalized;
-        var spanFilename = filename.AsSpan();
-        var spanContentPath = contentPath.AsSpan();
-        if (spanFilename.Contains('\\')) {
+        if (filename.Contains('\\')) {
             throw new ArgumentException("filename contains \\");
         }
-        if (spanContentPath.Contains('\\')) {
+        if (contentPath.Contains('\\')) {
             throw new ArgumentException("contentPath contains \\");
         }
-        if (contentPath.Length == 0) {
-        } else if (logicalPath.Length != filename.Length + 1 + contentPath.Length) {
-            throw new ArgumentException("logicalPath.Length!= (filename.Length + partContent.Length)");
-        }
+        // TODO:this does not respect line
+        //if (contentPath.Length == 0) {
+        //} else if (logicalPath.Length != filename.Length + 1 + contentPath.Length) {
+        //    throw new ArgumentException("logicalPath.Length!= (filename.Length + partContent.Length)");
+        //}
     }
 
     /// <summary>
     /// The complete path
     /// </summary>
     public string LogicalPath { get; }
+
+    [JsonIgnore]
     public string FilePath { get; }
+
+    [JsonIgnore]
+    public int Line { get; }
 
     /// <summary>
     /// the content path is the part after the filepath.
@@ -235,11 +247,13 @@ public class PathData : IEquatable<PathData> {
         return this.ContentPath.StartsWith(path.ContentPath, StringComparison.OrdinalIgnoreCase);
     }
 
-    public override string ToString() {
-        return this.LogicalPath;
-    }
+    public PathData WithFilePath(string filePath) => PathData.Create(filePath, this.Line, this.ContentPathNormalized);
+    public PathData WithLine(int line) => PathData.Create(this.FilePath, line, this.ContentPathNormalized);
+    public PathData WithContentPath(string contentPath) => PathData.Create(this.FilePath, this.Line, contentPath);
 
-    private string GetDebuggerDisplay() {
-        return this.LogicalPath;
-    }
+    public override string ToString() => this.LogicalPath;
+
+    private string GetDebuggerDisplay() => this.LogicalPath;
+
+    
 }

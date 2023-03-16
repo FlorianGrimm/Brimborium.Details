@@ -77,7 +77,8 @@ public class DocumentRepositorySnapshot {
                 result.Add(item.Value.DocumentInfo);
             }
         }
-        return this._GetAllDocumentInfo = result;
+        return this._GetAllDocumentInfo = new List<IDocumentInfo>(
+                result.OrderBy(item => item.FileName.AbsolutePath ?? string.Empty));
     }
 
     private List<MarkdownDocumentInfo>? _GetAllMarkdownDocumentInfo;
@@ -91,11 +92,12 @@ public class DocumentRepositorySnapshot {
                 result.Add(mdi);
             }
         }
-        return this._GetAllMarkdownDocumentInfo = result;
+        return this._GetAllMarkdownDocumentInfo = new List<MarkdownDocumentInfo>(
+                result.OrderBy(item => item.FileName.AbsolutePath ?? string.Empty));
     }
 
     private List<DocumentInfoSourceCodeMatch>? _GetAllConsumes;
-    public List<DocumentInfoSourceCodeMatch> GetAllConsumes() {
+    public List<DocumentInfoSourceCodeMatch> GetAllConsume() {
         if (this._GetAllConsumes is not null) {
             return this._GetAllConsumes;
         }
@@ -116,7 +118,7 @@ public class DocumentRepositorySnapshot {
     }
 
     private List<DocumentInfoSourceCodeMatch>? _GetAllProvides;
-    public List<DocumentInfoSourceCodeMatch> GetAllProvides() {
+    public List<DocumentInfoSourceCodeMatch> GetAllProvide() {
         if (this._GetAllProvides is not null) {
             return this._GetAllProvides;
         }

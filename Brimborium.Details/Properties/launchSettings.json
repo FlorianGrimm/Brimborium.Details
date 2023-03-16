@@ -2,8 +2,8 @@
   "profiles": {
     "Brimborium.Details": {
       "commandName": "Project",
-      "commandLineArgs": "--DetailsConfiguration \"C:\\github.com\\FlorianGrimm\\Brimborium.Details\\details.json\"",
-      "workingDirectory": "C:\\github.com\\FlorianGrimm\\Brimborium.Details\\Brimborium.Details\\"
+      "commandLineArgs": " --DetailsConfiguration \"C:\\visualstudio\\solvindev\\SEW\\AVTV2\\SEW.TestPlanning\\details.json\"\r\n --DetailsConfiguration2 \"C:\\github.com\\FlorianGrimm\\Brimborium.Details\\details.json\"",
+      "workingDirectory": "C:\\visualstudio\\solvindev\\SEW\\AVTV2\\SEW.TestPlanning\\"
     }
   }
 }

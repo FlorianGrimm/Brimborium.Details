@@ -9,13 +9,35 @@ public class WriterContext {
         this._SolutionData = solutionData;
     }
 
+    [System.Text.Json.Serialization.JsonInclude]
     public FileName DetailsFolder => this._SolutionData.DetailsFolder;
+
+    [System.Text.Json.Serialization.JsonInclude]
+    public List<ProjectData> ListProjectDatas => this._RootRepositorySnapshot.ProjectRepository.GetProjectDatas();
+
+    [System.Text.Json.Serialization.JsonInclude]
+    public List<ProjectDocumentInfo> ProjectDocumentInfo => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoProjectRootRelative();
+
+    [System.Text.Json.Serialization.JsonInclude]
+    public List<IDocumentInfo> ListDocumentInfo
+        => this._RootRepositorySnapshot.DocumentRepository.GetAllDocumentInfo();
+
+    [System.Text.Json.Serialization.JsonInclude]
+    public List<DocumentInfoSourceCodeMatch> ListProvide
+        => this._RootRepositorySnapshot.DocumentRepository.GetAllProvide();
+
+    [System.Text.Json.Serialization.JsonInclude]
+    public List<DocumentInfoSourceCodeMatch> ListConsume 
+        => this._RootRepositorySnapshot.DocumentRepository.GetAllConsume();
 
     public List<MarkdownDocumentInfo> GetAllMarkdownDocumentInfo()
         => this._RootRepositorySnapshot.DocumentRepository.GetAllMarkdownDocumentInfo();
 
     public List<IDocumentInfo> GetAllDocumentInfo()
         => this._RootRepositorySnapshot.DocumentRepository.GetAllDocumentInfo();
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoAbsolute()
+        => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoAbsolute();
 
     public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRootRelative()
         => this._RootRepositorySnapshot.ProjectDocumentRepository.GetAllProjectDocumentInfoProjectRootRelative();
@@ -31,34 +53,11 @@ public class WriterContext {
 
 
     public List<DocumentInfoSourceCodeMatch> GetAllConsumes() {
-        return this._RootRepositorySnapshot.DocumentRepository.GetAllConsumes();
-        //var result = new List<ProjectDocumentInfoSourceCodeMatch>();
-        //foreach (var projectDocumentInfo in this.GetLstProjectDocumentInfo()) {
-        //    if (projectDocumentInfo.DocumentInfo.LstConsumes is null) { continue; }
-        //    foreach (var sourceCodeMatch in projectDocumentInfo.DocumentInfo.LstConsumes) {
-        //        result.Add(new ProjectDocumentInfoSourceCodeMatch(
-        //            projectDocumentInfo.ProjectInfo,
-        //            projectDocumentInfo.DocumentInfo,
-        //            sourceCodeMatch));
-        //    }
-        //}
-        //return result;
+        return this._RootRepositorySnapshot.DocumentRepository.GetAllConsume();
     }
 
     public List<DocumentInfoSourceCodeMatch> GetListProvides() {
-        return this._RootRepositorySnapshot.DocumentRepository.GetAllProvides();
-        // this._RootRepositorySnapshot.DocumentRepository.GetAllMarkdownDocumentInfo();
-        // var result = new List<ProjectDocumentInfoSourceCodeMatch>();
-        // foreach (var projectDocumentInfo in this.GetLstProjectDocumentInfo(cache)) {
-        //    if (projectDocumentInfo.DocumentInfo.LstProvides is null) { continue; }
-        //    foreach (var sourceCodeMatch in projectDocumentInfo.DocumentInfo.LstProvides) {
-        //        result.Add(new ProjectDocumentInfoSourceCodeMatch(
-        //            projectDocumentInfo.ProjectInfo,
-        //            projectDocumentInfo.DocumentInfo,
-        //            sourceCodeMatch));
-        //    }
-        // }
-        // return result;
+        return this._RootRepositorySnapshot.DocumentRepository.GetAllProvide();
     }
 
     public List<DocumentInfoSourceCodeMatch> QueryPath(
@@ -70,14 +69,36 @@ public class WriterContext {
         var searchforProjectDocumentInfo = searchPathProjectDocumentInfo.Value;
 
         foreach (var item in this.GetListProvides()) {
-            var matchProjectDocumentInfo = this.FindProjectDocumentInfo(item.SourceCodeMatch.DetailData.Path);
-            if (!matchProjectDocumentInfo.HasValue) { continue; }
-            if (matchProjectDocumentInfo.Value.DocumentFilePathRootRelative.Equals(
-                searchforProjectDocumentInfo.DocumentFilePathRootRelative)) {
-                if (searchPath.IsContentPathEqual(item.SourceCodeMatch.DetailData.Path)){
-                    result.Add(item);
+            if (MatchInfoKind.Paragraph == item.SourceCodeMatch.DetailData.Kind) {
+            var detailDataPath = item.SourceCodeMatch.DetailData.Path;
+            var itemPathFilePath = detailDataPath.FilePath;
+                if (string.IsNullOrEmpty(itemPathFilePath)
+                    || string.Equals(
+                        itemPathFilePath,
+                        searchforProjectDocumentInfo.DocumentFilePathProjectRelative.RelativePath,
+                        StringComparison.OrdinalIgnoreCase
+                        )
+                    || string.Equals(
+                        itemPathFilePath,
+                        searchforProjectDocumentInfo.DocumentFilePathRootRelative.RelativePath,
+                        StringComparison.OrdinalIgnoreCase
+                        )
+                    ) {
+                if (searchPath.IsContentPathEqual(detailDataPath)) {
+                        result.Add(item);
+                    }
+                } else {
+                    continue;
                 }
             }
+            //var matchProjectDocumentInfo = this.FindProjectDocumentInfo(item.SourceCodeMatch.DetailData.Path);
+            //if (!matchProjectDocumentInfo.HasValue) { continue; }
+            //if (matchProjectDocumentInfo.Value.DocumentFilePathRootRelative.Equals(
+            //    searchforProjectDocumentInfo.DocumentFilePathRootRelative)) {
+            //    if (searchPath.IsContentPathEqual(item.SourceCodeMatch.DetailData.Path)){
+            //        result.Add(item);
+            //    }
+            //}
 
 
             //var (itemFileName, itemDocumentInfo) = this.FindDocumentInfo(item.SourceCodeMatch.DetailData.Path);
@@ -110,17 +131,31 @@ public class WriterContext {
         throw new NotImplementedException();
     }
 
-    private static int ComparerDocumentFilePathRootRelative(ProjectDocumentInfo projectDocumentInfo, string match) {
-        return string.Compare(
-             projectDocumentInfo.DocumentFilePathRootRelative.RelativePath,
-             match,
-             StringComparison.OrdinalIgnoreCase);
+    //private static int ComparerDocumentFilePathRootRelative(
+    //    ProjectDocumentInfo projectDocumentInfo,
+    //    string match) {
+    //    return string.Compare(
+    //         projectDocumentInfo.DocumentFilePathRootRelative.AbsolutePath,
+    //         match,
+    //         StringComparison.OrdinalIgnoreCase);
 
-    }
+    //}
 
-    private static int ComparerDocumentFilePathProjectRelative(ProjectDocumentInfo projectDocumentInfo, string match) {
+    //private static int ComparerDocumentFilePathProjectRelative(
+    //    ProjectDocumentInfo projectDocumentInfo, 
+    //    string match) {
+    //    return string.Compare(
+    //         projectDocumentInfo.DocumentFilePathProjectRelative.AbsolutePath,
+    //         match,
+    //         StringComparison.OrdinalIgnoreCase);
+
+    //}
+
+    private static int ComparerDocumentFilePathAbsolutePath(
+       ProjectDocumentInfo projectDocumentInfo,
+       string match) {
         return string.Compare(
-             projectDocumentInfo.DocumentFilePathProjectRelative.RelativePath,
+             projectDocumentInfo.DocumentFilePathProjectRelative.AbsolutePath,
              match,
              StringComparison.OrdinalIgnoreCase);
 
@@ -129,20 +164,20 @@ public class WriterContext {
     public ProjectDocumentInfo? FindProjectDocumentInfo(PathData path) {
         return this.FindProjectDocumentInfo(path.FilePath);
     }
-
+    
     public ProjectDocumentInfo? FindProjectDocumentInfo(string filePath) {
         var resultDetailsRoot = this._SolutionData.DetailsRoot.CreateWithRelativePath(filePath);
         var resultDetailsFolder = this._SolutionData.DetailsFolder.CreateWithRelativePath(filePath);
-        {
-            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoRootRelative();
-            var index = listProjectDocumentInfo.BinarySearch(resultDetailsRoot.RelativePath!, ComparerDocumentFilePathRootRelative);
+        if (resultDetailsRoot.AbsolutePath is not null) {
+            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoAbsolute();
+            var index = listProjectDocumentInfo.BinarySearch(resultDetailsRoot.AbsolutePath, ComparerDocumentFilePathAbsolutePath);
             if (index >= 0) {
                 return listProjectDocumentInfo[index];
             }
         }
-        {
-            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoProjectRelative();
-            var index = listProjectDocumentInfo.BinarySearch(resultDetailsFolder.RelativePath!, ComparerDocumentFilePathProjectRelative);
+        if (resultDetailsFolder.AbsolutePath is not null) {
+            var listProjectDocumentInfo = this.GetAllProjectDocumentInfoAbsolute();
+            var index = listProjectDocumentInfo.BinarySearch(resultDetailsFolder.AbsolutePath, ComparerDocumentFilePathAbsolutePath);
             if (index >= 0) {
                 return listProjectDocumentInfo[index];
             }
@@ -167,11 +202,8 @@ public class WriterContext {
         */
         return null;
     }
-
 }
-
 
 public readonly record struct DocumentInfoSourceCodeMatch(
     IDocumentInfo DocumentInfo,
     SourceCodeData SourceCodeMatch);
-

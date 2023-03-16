@@ -1,14 +1,14 @@
 ﻿namespace Brimborium.Details.Parse;
 
+[System.Text.Json.Serialization.JsonDerivedType(typeof(DetailData), "DetailData")]
 public record DetailData(
     MatchInfoKind Kind,
     PathData MatchPath,
-    Range MatchRange,
+    [property: JsonIgnore] Range MatchRange,
     PathData Path,
     string Command,
-    PathData Anchor,
     string Comment,
-    int Line = 0
+    int Line
 ) {
     public bool IsCommand => !string.IsNullOrEmpty(this.Command);
 

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Brimborium.Details.Utility;
+﻿namespace Brimborium.Details.Utility;
 public static class ParallelUtility {
 
     public static async Task ForEachAsync<TSource>(
@@ -12,7 +6,7 @@ public static class ParallelUtility {
         CancellationToken cancellationToken,
         Func<TSource, CancellationToken, ValueTask> body
         ) {
-#if false
+#if true
         await System.Threading.Tasks.Parallel.ForEachAsync(
             source,
             cancellationToken,

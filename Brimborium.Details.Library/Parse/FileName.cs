@@ -10,6 +10,7 @@ public class FileName : IEquatable<FileName> {
 
     public FileName() {
     }
+    
     public static FileName FromAbsolutePath(string absolutePath) {
         return new FileName() {
             AbsolutePath = absolutePath

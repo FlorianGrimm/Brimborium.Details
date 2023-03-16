@@ -20,14 +20,14 @@ public class MarkdownService {
         this._LstMatchCommand = serviceProvider.GetServices<IMatchCommand>().ToList();
     }
     public Task<MarkdownContext?> PrepareSolutionDetail(
-        ParserSinkContext parserSinkContext,
+        IParserSinkContext parserSinkContext,
         CancellationToken cancellationToken) {
         var projectInfo = parserSinkContext.GetOrAddDetailsProject(null);
         return Task.FromResult<MarkdownContext?>(new MarkdownContext(projectInfo));
     }
 
     public async Task ParseDetail(
-        ParserSinkContext parserSinkContext,
+        IParserSinkContext parserSinkContext,
         MarkdownContext markdownContext,
         CancellationToken cancellationToken) {
         // System.Console.Out.WriteLine($"DetailsFolder: {SolutionInfo.DetailsFolder}");
@@ -59,7 +59,7 @@ public class MarkdownService {
     }
 
     public async Task<MarkdownDocumentInfo> ParseMarkdownFile(
-        ParserSinkContext parserSinkContext,
+        IParserSinkContext parserSinkContext,
         FileName markdownFile,
         CancellationToken cancellationToken) {
         Console.Out.WriteLine($"markdownFile: {markdownFile}");
@@ -71,6 +71,7 @@ public class MarkdownService {
         IReplacementFinder? replacementFinder = null;
 
         var lstCurrentHeadings = new List<string>();
+        string? currentHeading = default;
         for (var idx = 0; idx < document.Count; idx++) {
             var block = document[idx];
 
@@ -78,14 +79,14 @@ public class MarkdownService {
                 if (headingBlock.Inline is null) {
                     throw new NotImplementedException("headingBlock.Inline");
                 }
-                // System.Console.Out.WriteLine($"headingBlock - {headingBlock.Level} - {GetText(headingBlock.Inline)}");                
+                // System.Console.Out.WriteLine($"headingBlock - {headingBlock.Level} - {GetText(headingBlock.Inline)}");
                 while (lstCurrentHeadings.Count >= headingBlock.Level) {
                     lstCurrentHeadings.RemoveAt(lstCurrentHeadings.Count - 1);
                 }
                 lstCurrentHeadings.Add(GetText(headingBlock.Inline));
 
                 var heading = BuildHeading(lstCurrentHeadings);
-                var anchor = PathData.Create(documentInfo.FileName.RelativePath!, heading);
+                var anchor = PathData.Create(documentInfo.FileName.RelativePath!, headingBlock.Inline.Line, heading);
                 documentInfo.GetLstProvides().Add(
                     new SourceCodeData(
                         documentInfo.FileName,
@@ -95,7 +96,6 @@ public class MarkdownService {
                             MatchRange: new Range(headingBlock.Inline.Span.Start, headingBlock.Inline.Span.End),
                             Path: PathData.Empty,
                             Command: string.Empty,
-                            Anchor: anchor,
                             Comment: string.Empty,
                             Line: headingBlock.Inline.Line
                             )
@@ -106,6 +106,7 @@ public class MarkdownService {
                     replacementFinder.VisitNotFound();
                     replacementFinder = null;
                 }
+                currentHeading = heading;
                 // System.Console.Out.WriteLine($"headingBlock - {headingBlock.Level} - {heading}");
                 continue;
             } else if (block is ParagraphBlock paragraphBlock) {
@@ -114,14 +115,18 @@ public class MarkdownService {
                     for (var inline = paragraphBlock.Inline.FirstChild; inline is not null; inline = inline.NextSibling) {
 
                         if (inline is LiteralInline literalInline) {
-                            var ownMatchPath = PathData.Create(documentInfo.FileName.RelativePath ?? string.Empty, string.Empty);
-                            var matchInfo = MatchUtility.parseMatch(literalInline.Content.ToString(), ownMatchPath, null, inline.Line, inline.Span.Start);
+                            var ownMatchPath = PathData.Create(documentInfo.FileName.RelativePath ?? string.Empty, literalInline.Line, currentHeading ?? string.Empty);
+                            var matchInfo = MatchUtility.ParseMatch(literalInline.Content.ToString(), ownMatchPath, null, inline.Line, inline.Span.Start);
 
                             if (matchInfo is not null) {
                                 var heading = BuildHeading(lstCurrentHeadings);
-                                matchInfo = matchInfo with {
-                                    Anchor = PathData.Create(documentInfo.FileName.RelativePath ?? string.Empty, heading)
-                                };
+                                // TODO: was anchor
+                                //if (!matchInfo.Path.IsEmpty()) {
+                                //    throw new InvalidOperationException("matchInfo.Path anchor was used");
+                                //}
+                                //matchInfo = matchInfo with {
+                                //    Path = PathData.Create(documentInfo.FileName.RelativePath ?? string.Empty, literalInline.Line, heading)
+                                //};
 
                                 var sourceCodeMatch = new SourceCodeData(
                                     documentInfo.FileName,

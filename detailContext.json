@@ -1,26 +1,4 @@
 {
-  "SolutionData": {
-    "DetailsRoot": {
-      "RelativePath": null
-    },
-    "SolutionFile": {
-      "RelativePath": "Brimborium.Details.sln"
-    },
-    "DetailsFolder": {
-      "RelativePath": "details"
-    },
-    "ListMainProjectName": [],
-    "ListMainProjectInfo": [],
-    "ListProject": []
-  },
-  "ProjectInfoByFilePath": {},
-  "DetailsProject": null,
-  "DetailsRoot": {
-    "RelativePath": null
-  },
-  "SolutionFile": {
-    "RelativePath": "Brimborium.Details.sln"
-  },
   "DetailsFolder": {
     "RelativePath": "details"
   }

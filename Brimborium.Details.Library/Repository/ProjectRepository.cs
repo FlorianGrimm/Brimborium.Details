@@ -105,14 +105,16 @@ public class ProjectRepositorySnapshot {
             if (projectData.FilePath.AbsolutePath is not null){
                 this._ProjectByAbsoluteFilePath.Add(projectData.FilePath.AbsolutePath, projectData);
             }
-            if (projectData.FilePath.RelativePath is not null){
-                this._ProjectByRootRelativeFilePath.Add(projectData.FilePath.RelativePath, projectData);
+            if (!string.IsNullOrEmpty(projectData.FilePath.RelativePath)){
+                this._ProjectByRootRelativeFilePath.Add(projectData.FilePath.RelativePath ?? string.Empty, projectData);
             }
         }
     }
 
     internal void Initialize() {
     }
+
+    public List<ProjectData> GetProjectDatas() => this._ProjectDatas;
 
     public bool TryGetByAbsoluteFilePath(
         FileName project,

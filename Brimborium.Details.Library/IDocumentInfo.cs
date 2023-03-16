@@ -1,5 +1,8 @@
 namespace Brimborium.Details;
 
+[System.Text.Json.Serialization.JsonDerivedType(typeof(MarkdownDocumentInfo), "MarkdownDocumentInfo")]
+[System.Text.Json.Serialization.JsonDerivedType(typeof(CSharpDocumentInfo), "CSharpDocumentInfo")]
+[System.Text.Json.Serialization.JsonDerivedType(typeof(TypescriptDocumentInfo), "TypescriptDocumentInfo")]
 public interface IDocumentInfo {
     FileName FileName { get; }
 
@@ -35,7 +38,7 @@ public record MarkdownDocumentInfo(
             FileName detailFolder) {
         return new MarkdownDocumentInfo(
             fileName,
-            fileName.Rebase(detailFolder)?.RelativePath ?? throw new InvalidOperationException()
+            fileName.Rebase(detailFolder)?.RelativePath?.ToString() ?? throw new InvalidOperationException()
             );
     }
 

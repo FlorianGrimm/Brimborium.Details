@@ -33,7 +33,7 @@ public class RootRepositoryFactory : IRootRepositoryFactory {
 
 public interface IRootRepository {
     SolutionData GetSolutionData();
-    ParserSinkContext GetParserSinkContext();
+    IParserSinkContext GetParserSinkContext();
     ProjectContext GetProjectContext(ProjectData projectData);
     ProjectData? GetProjectWithFolderPath(FileName detailsFolder);
     ProjectData? GetProjectByFilePath(FileName project);
@@ -65,12 +65,12 @@ public class RootRepository : IRootRepository {
 
     public SolutionData GetSolutionData() => this._SolutionData;
 
-    public ParserSinkContext GetParserSinkContext() {
+    public IParserSinkContext GetParserSinkContext() {
         var result = new ParserSinkContext(this, this._SolutionData);
         return result;
     }
 
-    public WriterContext? GetWriterContext(ParserSinkContext parserSinkContext) {
+    public WriterContext? GetWriterContext(IParserSinkContext parserSinkContext) {
         return new WriterContext(this.GetSnapshot(), this._SolutionData);
     }
 

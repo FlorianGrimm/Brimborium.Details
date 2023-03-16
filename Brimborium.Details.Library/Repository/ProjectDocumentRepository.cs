@@ -1,4 +1,6 @@
-﻿namespace Brimborium.Details.Repository;
+﻿using System.Text.Json.Serialization;
+
+namespace Brimborium.Details.Repository;
 
 public interface IProjectDocumentRepositoryFactory {
     ProjectDocumentRepository Get(SolutionData solutionData);
@@ -69,6 +71,7 @@ public class ProjectDocumentRepositorySnapshot {
     private readonly ProjectRepositorySnapshot _ProjectRepository;
     private readonly DocumentRepositorySnapshot _DocumentRepository;
 
+    private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoAbsolute;
     private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoProjectRootRelative;
     private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoProjectProjectRelative;
     private readonly List<ProjectDocumentInfo> _ListProjectDocumentInfoRootRelative;
@@ -106,6 +109,10 @@ public class ProjectDocumentRepositorySnapshot {
             }
         }
 
+        this._ListProjectDocumentInfoAbsolute = new List<ProjectDocumentInfo>(
+            listProjectDocumentInfo
+                .OrderBy(item => item.DocumentFilePathRootRelative.AbsolutePath));
+
         this._ListProjectDocumentInfoProjectRootRelative = new List<ProjectDocumentInfo>(
             listProjectDocumentInfo
                 .OrderBy(item => item.ProjectFilePathRootRelative.AbsolutePath)
@@ -118,26 +125,29 @@ public class ProjectDocumentRepositorySnapshot {
 
         this._ListProjectDocumentInfoRootRelative = new List<ProjectDocumentInfo>(
             listProjectDocumentInfo
-                .OrderBy(item => item.ProjectFilePathRootRelative.RelativePath));     
+                .OrderBy(item => item.ProjectFilePathRootRelative.RelativePath));
 
         this._ListProjectDocumentInfoProjectRelative = new List<ProjectDocumentInfo>(
             listProjectDocumentInfo
-                .OrderBy(item => item.DocumentFilePathProjectRelative.RelativePath));                
+                .OrderBy(item => item.DocumentFilePathProjectRelative.RelativePath));
     }
 
     internal void Initialize() {
     }
 
-    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRootRelative() 
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoAbsolute()
+        => this._ListProjectDocumentInfoAbsolute;
+
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRootRelative()
         => this._ListProjectDocumentInfoProjectRootRelative;
 
-    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectProjectRelative() 
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectProjectRelative()
         => this._ListProjectDocumentInfoProjectProjectRelative;
 
-    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoRootRelative() 
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoRootRelative()
         => this._ListProjectDocumentInfoRootRelative;
 
-    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRelative() 
+    public List<ProjectDocumentInfo> GetAllProjectDocumentInfoProjectRelative()
         => this._ListProjectDocumentInfoProjectRelative;
 }
 
@@ -145,6 +155,9 @@ public readonly record struct ProjectDocumentInfo(
     FileName ProjectFilePathRootRelative,
     FileName DocumentFilePathRootRelative,
     FileName DocumentFilePathProjectRelative,
+    [property: JsonIgnore]
     ProjectData Project,
-    IDocumentInfo Document);
-    
+    [property: JsonIgnore]
+    IDocumentInfo Document) {
+    public string ProjectName => this.Project.Name;
+}

@@ -27,7 +27,7 @@ public class TypeScriptService {
     }
 
     public async Task ParseTypeScript(
-        ParserSinkContext detailContext,
+        IParserSinkContext detailContext,
         CancellationToken cancellationToken) {
         var lstTypeSciptProjectInfo = detailContext.SolutionData.ListMainProjectInfo
             .Where(item => item.Language == "TypeScript")
@@ -86,9 +86,9 @@ public class TypeScriptService {
     private List<SourceCodeData>? ParseTypeScriptDocument(FileName tsFile, string sourceCode) {
         List<SourceCodeData>? result = null;
         if (sourceCode.Contains('§')) {
-            var ownMatchPath = PathData.Create(tsFile.RelativePath!, string.Empty);
+            var ownMatchPath = PathData.Create(tsFile.RelativePath!, 0, string.Empty);
             foreach (Match match in regexSimple.Matches(sourceCode)) {
-                var matchInfo = MatchUtility.parseMatch(match.Value, ownMatchPath, null, 0, match.Index);
+                var matchInfo = MatchUtility.ParseMatch(match.Value, ownMatchPath, null, 0, match.Index);
                 if (matchInfo is null) { continue; }
 
                 if (result is null) {
