@@ -36,8 +36,8 @@ public static class Program {
         
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
             serviceCollection.AddServicesWithRegistrator(
-                a => {
-                    a.FromDependencyContext(
+                selector => {
+                    selector.FromDependencyContext(
                         Microsoft.Extensions.DependencyModel.DependencyContext.Default ?? throw new Exception("DependencyContext.Default is null"),
                         (assName) => (assName.Name is string name) && name.StartsWith("Brimborium.")
                     )
