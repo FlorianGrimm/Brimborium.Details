@@ -70,7 +70,8 @@ public class CSharpServiceTests {
         var documentRepository = new DocumentRepository(solutionData);
 
         var detailsRepository = new RootRepository(solutionData, projectRepository, projectDocumentRepository, documentRepository);
-        IParserSinkContext parserSinkContext = new ParserSinkContext(detailsRepository, solutionData);
+        var watchServiceConfigurator = DummyWatchServiceConfigurator.Instance;
+        IParserSinkContext parserSinkContext = new ParserSinkContext(detailsRepository, solutionData, watchServiceConfigurator);
         using var act = await sut.PrepareSolutionCSharp(parserSinkContext, CancellationToken.None);
         Assert.NotNull(act);
         

@@ -1,7 +1,7 @@
 ﻿namespace Brimborium.Details;
 
 // § todo.md § https://github.com/mrlacey/CommentLinks §
-public static class Program {
+public class Program {
     public static async Task Main(string[] args) {
         System.Console.Out.WriteLine("Brimborium.Details");
         System.Console.Out.WriteLine(System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
@@ -21,7 +21,7 @@ public static class Program {
                 var configuration = configurationBuilder.Build();
                 configuration.Bind(appSettings);
                 AppSettings.ConfigureAppSettings(configurationBuilder, configuration, appSettings);
-                
+
             });
 
         hostBuilder.ConfigureServices(
@@ -33,7 +33,7 @@ public static class Program {
                     });
             });
 
-        
+
         hostBuilder.ConfigureServices((hostBuilderContext, serviceCollection) => {
             serviceCollection.AddServicesWithRegistrator(
                 selector => {
@@ -45,9 +45,9 @@ public static class Program {
                     .UsingAttributes();
                 });
         });
-        
-        using IHost host = hostBuilder.Build();
 
+        using IHost host = hostBuilder.Build();
+        var logger = host.Services.GetRequiredService<ILogger<Program>>();
 
         var ctsMain = new CancellationTokenSource();
         await host.StartAsync(ctsMain.Token);
@@ -60,16 +60,16 @@ public static class Program {
             applicationLifetime.StopApplication();
         };
 
-        var solutionDataRepository=host.Services.GetRequiredService<ISolutionDataRepository>();
+        var solutionDataRepository = host.Services.GetRequiredService<ISolutionDataRepository>();
         var solutionData = solutionDataRepository.GetSolutionData();
         if (solutionData is null) {
+            logger.LogError("SolutionInfo is not valid");
             System.Console.Error.WriteLine("SolutionInfo is not valid");
             return;
         }
         var rootRepositoryFactory = host.Services.GetRequiredService<RootRepositoryFactory>();
         var rootRepository = rootRepositoryFactory.Get(solutionData);
-        //var solutionData = appSettings.ValidateConfiguration(host.Services.GetRequiredService<IConfiguration>());
-        
+
         var detailsLogicService = host.Services.GetRequiredService<DetailsRunnerService>();
         var wait = await detailsLogicService.ExecuteAsync(rootRepository, ctsMain.Token);
         if (wait) {

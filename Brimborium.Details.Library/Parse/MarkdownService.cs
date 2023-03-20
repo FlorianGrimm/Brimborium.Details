@@ -65,7 +65,6 @@ public class MarkdownService {
         Console.Out.WriteLine($"markdownFile: {markdownFile}");
 
         var markdownContent = await this._FileSystem.ReadAllTextAsync(markdownFile, Encoding.UTF8, cancellationToken);
-        //MarkdownDocument document = MarkdownParser.Parse(markdownContent);
         var document = Markdown.Parse(markdownContent, this._Pipeline);
         var documentInfo = MarkdownDocumentInfo.Create(markdownFile, parserSinkContext.SolutionData.DetailsFolder);
         IReplacementFinder? replacementFinder = null;
@@ -79,7 +78,6 @@ public class MarkdownService {
                 if (headingBlock.Inline is null) {
                     throw new NotImplementedException("headingBlock.Inline");
                 }
-                // System.Console.Out.WriteLine($"headingBlock - {headingBlock.Level} - {GetText(headingBlock.Inline)}");
                 while (lstCurrentHeadings.Count >= headingBlock.Level) {
                     lstCurrentHeadings.RemoveAt(lstCurrentHeadings.Count - 1);
                 }
@@ -221,7 +219,7 @@ public class MarkdownService {
         return sb?.ToString() ?? "";
     }
 
-    public async Task WriteDetail(
+    public async Task WriteMarkdownDetail(
         WriterContext writerContext,
         CancellationToken cancellationToken) {
         // § todo.md

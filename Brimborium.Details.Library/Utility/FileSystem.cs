@@ -1,12 +1,17 @@
 ﻿namespace Brimborium.Details.Utility;
+
 public interface IFileSystem {
     IEnumerable<FileName> EnumerateFiles(FileName path, string searchPattern, SearchOption searchOption);
+
+    DateTime GetLastWriteTimeUtc(FileName filePath);
 
     Task<string[]> ReadAllLinesAsync(FileName path, Encoding encoding, CancellationToken cancellationToken = default);
 
     Task<string> ReadAllTextAsync(FileName path, Encoding encoding, CancellationToken cancellationToken = default);
 
     Task WriteAllTextAsync(FileName path, Encoding encoding, string content, CancellationToken cancellationToken = default);
+
+    IFileWatcher CreateFileWatcher(FileName path);
 }
 
 [Singleton]
@@ -25,6 +30,11 @@ public class FileSystem : IFileSystem {
             }
         }
         return result;
+    }
+
+    public DateTime GetLastWriteTimeUtc(FileName filePath) {
+        return File.GetLastWriteTimeUtc(
+            filePath.AbsolutePath ?? throw new InvalidOperationException("filePath.AbsolutePath is null"));
     }
 
     public async Task<string[]> ReadAllLinesAsync(FileName path, Encoding encoding, CancellationToken cancellationToken = default) {
@@ -48,5 +58,18 @@ public class FileSystem : IFileSystem {
             encoding,
             cancellationToken
             );
+    }
+
+    public IFileWatcher CreateFileWatcher(FileName path) {
+        var watcher = new FileSystemWatcher();
+        watcher.Path = path.AbsolutePath ?? throw new InvalidOperationException("path.AbsolutePath is null");
+        watcher.NotifyFilter =
+            NotifyFilters.FileName
+            | NotifyFilters.DirectoryName
+            | NotifyFilters.Size
+            | NotifyFilters.LastWrite
+            | NotifyFilters.CreationTime
+            ;
+        return FileWatcher.Create(watcher);
     }
 }

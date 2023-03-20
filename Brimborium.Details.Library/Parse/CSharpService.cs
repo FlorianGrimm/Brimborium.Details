@@ -527,7 +527,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
         return symbol;
     }
 
-    public async Task WriteDetail(
+    public async Task WriteCSharpDetail(
         WriterContext writerContext,
         CancellationToken cancellationToken) {
         // § todo.md

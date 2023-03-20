@@ -33,16 +33,26 @@ public class RootRepositoryFactory : IRootRepositoryFactory {
 
 public interface IRootRepository {
     SolutionData GetSolutionData();
-    IParserSinkContext GetParserSinkContext();
+    
+    IParserSinkContext GetParserSinkContext(
+        IWatchServiceConfigurator watchServiceConfigurator
+        );
+    
     ProjectContext GetProjectContext(ProjectData projectData);
+    
     ProjectData? GetProjectWithFolderPath(FileName detailsFolder);
+    
     ProjectData? GetProjectByFilePath(FileName project);
+    
     ProjectData GetOrAddProject(ProjectData project);
+    
     // List<ProjectDocumentData> SetProjectDocuments(
     //     ProjectData project,
     //     List<FileName> lstDocumentFileName);
 
     ProjectData GetOrAddDetailsProject(ProjectData? project);
+
+    WriterContext? GetWriterContext(IParserSinkContext parserSinkContext);
 }
 
 public class RootRepository : IRootRepository {
@@ -65,8 +75,14 @@ public class RootRepository : IRootRepository {
 
     public SolutionData GetSolutionData() => this._SolutionData;
 
-    public IParserSinkContext GetParserSinkContext() {
-        var result = new ParserSinkContext(this, this._SolutionData);
+    public IParserSinkContext GetParserSinkContext(
+        IWatchServiceConfigurator watchServiceConfigurator
+    ) {
+        var result = new ParserSinkContext(
+            this, 
+            this._SolutionData,
+            watchServiceConfigurator
+            );
         return result;
     }
 

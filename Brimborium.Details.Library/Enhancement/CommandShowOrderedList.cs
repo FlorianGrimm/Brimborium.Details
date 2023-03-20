@@ -24,18 +24,11 @@ public class CommandShowOrderedList : IMatchCommand {
 
         var path = matchInfo.Path;
         if (path is null || path.IsEmpty()) {
-            // § todo.md why does matchInfo.MatchPath not work? why is contentpath empty?
             path = matchInfo.MatchPath.WithLine(0);
-            //var relativePath =
-            //    markdownDocumentWriter.MarkdownDocumentInfo.FileName.Rebase(
-            //        markdownDocumentWriter.WriterContext.DetailsFolder
-            //    )?.RelativePath
-            //    ?? string.Empty;
-            //path = PathData.Parse(relativePath);
         }
 
         this._Logger.LogDebug("Show-List: {0}", path);
-        
+
         var lstMatch = detailContext.QueryPath(path);
 
         //ListBlock? target = default;
@@ -45,14 +38,15 @@ public class CommandShowOrderedList : IMatchCommand {
 
         if (listBlockReplacementFinder.Range is not null) {
             targetRange = listBlockReplacementFinder.Range;
+            // TODO
         }
 
         if (targetRange is null) {
-            var source = markdownDocumentWriter.GetBlockByLine(sourceCodeMatch.DetailData.Line);
-            if (source is null) {
+            var mdBlock = markdownDocumentWriter.GetBlockByLine(sourceCodeMatch.DetailData.Line);
+            if (mdBlock is null) {
                 return Task.CompletedTask;
             }
-            targetRange = markdownDocumentWriter.GetRangeAfter(source);
+            targetRange = markdownDocumentWriter.GetRangeAfter(mdBlock);
         }
 
         if (targetRange is null) {
@@ -62,29 +56,25 @@ public class CommandShowOrderedList : IMatchCommand {
         if (replacementContent is null) {
             return Task.CompletedTask;
         }
+        var oldContent = replacementContent.AsSubString();
+
         var sb = replacementContent.GetReplacementBuilder();
         if (lstMatch.Count == 0) {
             sb.Append("- No Matches").AppendLine();
         } else {
-            // var lstMatchOrdered = lstMatch
-            //     .Select((match)=>(match, match.SourceCodeMatch.DetailData.Comment))
-            //     .OrderBy(match => match.Order).ToList();
-            // match.SourceCodeMatch.DetailData.Comment
-            lstMatch = lstMatch.OrderBy(match => match.SourceCodeMatch.DetailData.Comment).ToList();
-            foreach (var (match, idx) in lstMatch) {
-                //string? link;
-                //if (string.IsNullOrEmpty(match.SourceCodeMatch.Match.MatchPath.ContentPath)) {
-                //    link = match.SourceCodeMatch.Match.MatchPath.FilePath;
-                //} else {
-                //    link = match.SourceCodeMatch.Match.MatchPath.FilePath;
-                //}
-                sb.Append("- ");
+            var lstMatchOrdered =
+                OrderedItem.CreateList(lstMatch,
+                    (match) => OrderedItem.ExtractOrderFromComment(match.SourceCodeMatch.DetailData.Comment));
+
+            foreach (var (order, match) in lstMatchOrdered) {
+                sb.Append(order.ToString());
+                sb.Append(". ");
                 if (match.SourceCodeMatch.FilePath.RootFolder == markdownDocumentWriter.WriterContext.DetailsFolder) {
                     sb.Append("details://").Append(match.SourceCodeMatch.FilePath.RelativePath);
                     if (match.SourceCodeMatch.DetailData.Line > 0) {
                         sb.Append("#").Append(match.SourceCodeMatch.DetailData.Line);
                     }
-                    if (!string.IsNullOrEmpty(match.SourceCodeMatch.DetailData.Comment)) { 
+                    if (!string.IsNullOrEmpty(match.SourceCodeMatch.DetailData.Comment)) {
                         sb.Append(" § ").Append(match.SourceCodeMatch.DetailData.Comment);
                     }
                 } else {
@@ -102,6 +92,13 @@ public class CommandShowOrderedList : IMatchCommand {
         return Task.CompletedTask;
     }
 
+    private void parseListBlock(ListBlock listBlock) {
+        foreach (var subBlock in listBlock) {
+            if (subBlock is ListBlock subListBlock) {
+                parseListBlock(subListBlock);
+            }
+        }
+    }
 
     public IReplacementFinder? GetReplacementFinder(
         MarkdownDocumentInfo markdownDocumentInfo,

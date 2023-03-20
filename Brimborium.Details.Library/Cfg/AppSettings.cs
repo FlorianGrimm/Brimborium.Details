@@ -32,12 +32,15 @@ public class AppSettings {
         IConfiguration configuration,
         AppSettings appSettings) {
         appSettings.Configure(configuration);
-        if (!string.IsNullOrEmpty(appSettings.DetailsConfiguration)) {
-            if (!File.Exists(appSettings.DetailsConfiguration)) {
-                throw new Exception($"File not found: {appSettings.DetailsConfiguration}");
+        var detailsConfiguration = appSettings.DetailsConfiguration.Trim();
+        if (!string.IsNullOrEmpty(detailsConfiguration)) {
+            if (File.Exists(detailsConfiguration)) {
+                System.Console.WriteLine($"File found: '{detailsConfiguration}'");
             }
-            var detailsConfiguration = appSettings.DetailsConfiguration;
-            configurationBuilder.AddJsonFile(appSettings.DetailsConfiguration, optional: false, reloadOnChange: true);
+            if (!File.Exists(detailsConfiguration)) {
+                throw new Exception($"File not found: '{detailsConfiguration}'");
+            }
+            configurationBuilder.AddJsonFile(detailsConfiguration, optional: false, reloadOnChange: true);
             configuration = configurationBuilder.Build();
             configuration.Bind(appSettings);
             appSettings.DetailsConfiguration = detailsConfiguration;

@@ -26,12 +26,6 @@ public class CommandShowList : IMatchCommand {
         if (path is null || path.IsEmpty()) {
             // § todo.md why does matchInfo.MatchPath not work? why is contentpath empty?
             path = matchInfo.MatchPath.WithLine(0);
-            //var relativePath =
-            //    markdownDocumentWriter.MarkdownDocumentInfo.FileName.Rebase(
-            //        markdownDocumentWriter.WriterContext.DetailsFolder
-            //    )?.RelativePath
-            //    ?? string.Empty;
-            //path = PathData.Parse(relativePath);
         }
 
         this._Logger.LogDebug("Show-List: {0}", path);

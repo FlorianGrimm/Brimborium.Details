@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Brimborium.Details/bin/Debug/net7.0/Brimborium.Details.dll",
-            "args": [],
+            "args": ["--watch", "true"],
             "cwd": "${workspaceFolder}/Brimborium.Details",
             // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console
             "console": "internalConsole",

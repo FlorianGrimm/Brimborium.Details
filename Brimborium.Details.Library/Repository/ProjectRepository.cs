@@ -79,7 +79,7 @@ public class ProjectRepository {
     public ProjectRepositorySnapshot GetSnapshot() {
         lock (this) {
             var result = new ProjectRepositorySnapshot(
-                this._SolutionData, 
+                this._SolutionData,
                 new List<ProjectData>(this._ListProjects),
                 this._DetailsProject);
             return result;
@@ -101,11 +101,11 @@ public class ProjectRepositorySnapshot {
         this._DetailsProject = detailsProject;
         this._ProjectByAbsoluteFilePath = new(StringComparer.InvariantCultureIgnoreCase);
         this._ProjectByRootRelativeFilePath = new(StringComparer.InvariantCultureIgnoreCase);
-        foreach(var projectData in projectDatas) {
-            if (projectData.FilePath.AbsolutePath is not null){
+        foreach (var projectData in projectDatas) {
+            if (projectData.FilePath.AbsolutePath is not null) {
                 this._ProjectByAbsoluteFilePath.Add(projectData.FilePath.AbsolutePath, projectData);
             }
-            if (!string.IsNullOrEmpty(projectData.FilePath.RelativePath)){
+            if (!string.IsNullOrEmpty(projectData.FilePath.RelativePath)) {
                 this._ProjectByRootRelativeFilePath.Add(projectData.FilePath.RelativePath ?? string.Empty, projectData);
             }
         }
@@ -118,7 +118,7 @@ public class ProjectRepositorySnapshot {
 
     public bool TryGetByAbsoluteFilePath(
         FileName project,
-        [MaybeNullWhen(false)] out ProjectData projectData) 
+        [MaybeNullWhen(false)] out ProjectData projectData)
         => _ProjectByAbsoluteFilePath.TryGetValue(
                 project.AbsolutePath
                 ?? throw new ArgumentException("FilePath.AbsolutePath is null", nameof(project)),
@@ -157,15 +157,17 @@ public class ProjectContext {
         return result;
     }
 
-    public void SetListProjectDocumentInfo<TDocumentInfo>(List<TDocumentInfo> listDocumentInfo)
+    public List<ProjectDocumentData> SetListProjectDocumentInfo<TDocumentInfo>(List<TDocumentInfo> listDocumentInfo)
         where TDocumentInfo : IDocumentInfo {
+        var result = new List<ProjectDocumentData>();
         foreach (var documentInfo in listDocumentInfo) {
             var documentData = new DocumentData(documentInfo.FileName, documentInfo);
             this._DocumentRepository.Set(documentData);
             var projectDocumentData = this._ProjectDocumentRepository.GetOrAdd(
                 new ProjectDocumentData(this._Project.FilePath, documentData.FilePath)
                 );
-
+            result.Add(projectDocumentData);
         }
+        return result;
     }
 }

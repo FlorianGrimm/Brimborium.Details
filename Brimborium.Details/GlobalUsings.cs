@@ -22,6 +22,7 @@ global using global::Microsoft.Extensions.Configuration;
 global using global::Microsoft.Extensions.DependencyInjection;
 global using global::Microsoft.Extensions.Options;
 global using global::Microsoft.Extensions.Hosting;
+global using global::Microsoft.Extensions.Logging;
 
 global using global::Microsoft.CodeAnalysis.MSBuild;
 global using global::Microsoft.CodeAnalysis.CSharp;

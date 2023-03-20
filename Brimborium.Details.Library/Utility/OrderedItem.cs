@@ -1,6 +1,6 @@
 namespace Brimborium.Details.Utility;
 
-public static class OrderedItem{
+public static class OrderedItem {
     public static List<OrderedItem<T>> CreateList<T>(IEnumerable<T> items, Func<T, int> orderSelector) {
         var result = new List<OrderedItem<T>>();
         foreach (var item in items) {
@@ -9,20 +9,32 @@ public static class OrderedItem{
         result.Sort();
         return result;
     }
-    public static int ExtractOrderFromComment(StringSlice comment){
-        comment=comment.Trim();
+    public static int ExtractOrderFromComment(StringSlice comment) {
+        comment = comment.Trim();
         if (comment.IsNullOrEmpty()) {
-            return int.MinValue;
+            return 0;
         }
-        comment.ReadWhile((value,idx)=>{return char.IsDigit(value) || (idx==0 && (value == '-' || value=='+'));});
-        return 0;
-
+        var numberText = comment.ReadWhile(
+            (value, idx) => {
+                return char.IsDigit(value)
+                    || (idx == 0 && (value == '-' || value == '+'));
+            });
+        if (numberText.Length == 0) {
+            return 0;
+        } else {
+            return int.TryParse(numberText.AsSpan(), out var result) ? result : 0;
+        }
     }
 }
 public class OrderedItem<T> : IComparable<OrderedItem<T>> {
     public OrderedItem(int order, T item) {
         this.Order = order;
         this.Item = item;
+    }
+
+    public void Deconstruct(out int order, out T item) {
+        order = this.Order;
+        item = this.Item;
     }
 
     public int Order { get; }
