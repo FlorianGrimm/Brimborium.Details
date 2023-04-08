@@ -6,7 +6,7 @@ public class MatchUtilityTests {
         var location = PathData.Create("other.md", 42, "#/definition");
         {
             var sut = MatchUtility.ParseMatch(
-            "// § todo.md", location, "//", 0, 0);
+            "// § todo.md", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
@@ -20,7 +20,7 @@ public class MatchUtilityTests {
         }
         {
             var sut = MatchUtility.ParseMatch(
-                "§ Syntax-Marker.md#Syntax-Marker", location, "//", 0, 0);
+                "§ Syntax-Marker.md#Syntax-Marker", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
@@ -35,7 +35,7 @@ public class MatchUtilityTests {
 
         {
             var sut = MatchUtility.ParseMatch(
-                "§ Syntax-Marker.md#/Syntax-Marker § Comment", location, "//", 0, 0);
+                "§ Syntax-Marker.md#/Syntax-Marker § Comment", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
@@ -49,7 +49,7 @@ public class MatchUtilityTests {
 
         {
             var sut = MatchUtility.ParseMatch(
-            "§ Syntax-Marker.md#/Syntax-Marker § Comment §", location, "//", 0, 0);
+            "§ Syntax-Marker.md#/Syntax-Marker § Comment §", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
@@ -64,7 +64,7 @@ public class MatchUtilityTests {
         //{
 
         //    var sut = MatchUtility.parseMatch(
-        //        "§ Syntax-Marker.md#/Syntax-Marker # 5", location, "//", 0, 0);
+        //        "§ Syntax-Marker.md#/Syntax-Marker # 5", location, new string[]{"//"}, 0, 0);
         //    Assert.NotNull(sut);
         //    Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
         //    Assert.Equal("other.md", sut.MatchPath.FilePath.ToString());
@@ -77,7 +77,7 @@ public class MatchUtilityTests {
 
         //{
         //    var sut = MatchUtility.parseMatch(
-        //    "§ Syntax-Marker.md#Syntax-Marker # 10 §", location, "//", 0, 0);
+        //    "§ Syntax-Marker.md#Syntax-Marker # 10 §", location, new string[]{"//"}, 0, 0);
         //    Assert.NotNull(sut);
         //    Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
         //    Assert.Equal("other.md", sut.MatchPath.FilePath.ToString());
@@ -90,7 +90,7 @@ public class MatchUtilityTests {
 
         //{
         //    var sut = MatchUtility.parseMatch(
-        //        "§ Syntax-Marker.md#Syntax-Marker # 5 § Comment", location, "//", 0, 0);
+        //        "§ Syntax-Marker.md#Syntax-Marker # 5 § Comment", location, new string[]{"//"}, 0, 0);
         //    Assert.NotNull(sut);
         //    Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
         //    Assert.Equal("other.md", sut.MatchPath.FilePath.ToString());
@@ -103,7 +103,7 @@ public class MatchUtilityTests {
 
         //{
         //    var sut = MatchUtility.parseMatch(
-        //        "§ Syntax-Marker.md#Syntax-Marker # 10 § Comment §", location, "//", 0, 0);
+        //        "§ Syntax-Marker.md#Syntax-Marker # 10 § Comment §", location, new string[]{"//"}, 0, 0);
         //    Assert.NotNull(sut);
         //    Assert.Equal(MatchInfoKind.Paragraph, sut.Kind);
         //    Assert.Equal("other.md", sut.MatchPath.FilePath.ToString());
@@ -121,7 +121,7 @@ public class MatchUtilityTests {
 
         {
             var sut = MatchUtility.ParseMatch(
-               "// §> Call-Command \r\n", location, "//", 0, 0);
+               "// §> Call-Command \r\n", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.ParagraphCommand, sut.Kind);
@@ -137,7 +137,7 @@ public class MatchUtilityTests {
 
         {
             var sut = MatchUtility.ParseMatch(
-               "§> Call-Command Syntax-Marker.md/Syntax-Marker", location, "//", 0, 0);
+               "§> Call-Command Syntax-Marker.md/Syntax-Marker", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.ParagraphCommand, sut.Kind);
@@ -153,7 +153,7 @@ public class MatchUtilityTests {
 
         {
             var sut = MatchUtility.ParseMatch(
-               "§> Show-List todo.md", location, "//", 0, 0);
+               "§> Show-List todo.md", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal("Show-List", sut.Command);
@@ -170,7 +170,7 @@ public class MatchUtilityTests {
         {
             // § details/Syntax-Marker.md#Parse/Anchor test // §# todo.md
             var sut = MatchUtility.ParseMatch(
-               "// §# todo.md", location, "//", 0, 0);
+               "// §# todo.md", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.Anchor, sut.Kind);
@@ -186,7 +186,7 @@ public class MatchUtilityTests {
         {
             // § details/Syntax-Marker.md#Parse/Anchor test // §# todo.md comment
             var sut = MatchUtility.ParseMatch(
-               "// §# todo.md comment", location, "//", 0, 0);
+               "// §# todo.md comment", location, new string[]{"//"}, 0, 0);
 
             Assert.NotNull(sut);
             Assert.Equal(MatchInfoKind.Anchor, sut.Kind);

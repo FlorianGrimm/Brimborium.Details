@@ -8,22 +8,24 @@ So you can document your reasons / desitions / ideas and link it with the source
 Collects Information from the source code.
 Modify markdown files.
 
-
 VS Code: extension for link details
 
-for files
-details://path/file.ext:line
+for code files - 
+detailscode://path/file.ext#line
 
 for marked locations
-details://Header1/Header2/Label1 
+details://details/one-aspect.md#/Header1/Header2/Label1 
+
 opens markdown or opens source code
+
+TODO: review the syntax - code changed
 
 ### Exsample
 
 ```CS
 class Abc{
     public void Do(){
-        // § Header1 / Header2 / Label 1
+        // § details/one-aspect.md#/Header-1/Header-2/Label1
         var x = new Xyz();
         x.Something();
     }
@@ -42,8 +44,8 @@ class Xyz{
 
 §> Show-List
 
-- Label1 details://example.cs#4
-- Label2 details://example.cs#5
+- Label1 detailscode://src/example.cs#4
+- Label2 detailscode://src/example.cs#5
 
 
 ```

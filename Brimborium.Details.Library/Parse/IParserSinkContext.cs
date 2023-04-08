@@ -40,7 +40,9 @@ public class ParserSinkContext : IParserSinkContext {
 
     public ProjectData GetOrAddDetailsProject(ProjectData? project) {
         var result = this._DetailsRepository.GetOrAddDetailsProject(project);
-        this._WatchServiceConfigurator.AddDirectory(project, result.FolderPath);
+        if (project is not null){
+            this._WatchServiceConfigurator.AddDirectory(project, result.FolderPath);
+        }
         return result;
     }
 

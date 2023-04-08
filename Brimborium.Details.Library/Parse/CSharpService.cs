@@ -355,6 +355,8 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
 #endif
     }
 
+    private static string[] comments = new string[] { "/// ", "///\t" ,"// ", "//\t", "///", "//" };
+
     public async Task ParseDocument(
         SolutionData solutionData,
         Solution solution,
@@ -373,7 +375,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
             if (sourceCode.Contains('§')) {
                 foreach (Match match in regexSimple.Matches(sourceCode)) {
                     var ownMatchPath = PathData.Create(documentInfo.FileName.RelativePath??string.Empty, 0, String.Empty);
-                    var detailData = MatchUtility.ParseMatch(match.Value, ownMatchPath, "//", 0, match.Index);
+                    var detailData = MatchUtility.ParseMatch(match.Value, ownMatchPath, comments, 0, match.Index);
                     if (detailData is null) { continue; }
 
                     if (MatchInfoKind.Paragraph == detailData.Kind) { 
@@ -459,7 +461,7 @@ var filePath =                         solutionInfo.GetRelativePath(declaringSyn
                           ? documentInfo.GetLstConsumes()
                           : documentInfo.GetLstProvides()
                           ).Add(sourceCodeMatch);
-#warning TODO
+//#warning TODO
 #if false
                     if (methodSymbol is not null) {
                         var lstSymbolCallerInfo = await SymbolFinder.FindCallersAsync(methodSymbol, solution, CancellationToken.None);

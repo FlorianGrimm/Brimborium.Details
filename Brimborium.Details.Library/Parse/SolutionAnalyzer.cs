@@ -229,7 +229,7 @@ public class RepeatDifferential
         }
     }
 
-    ~Repeat() {
+    ~RepeatDifferential() {
         this.Dispose(disposing: false);
     }
 

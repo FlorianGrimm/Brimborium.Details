@@ -9,34 +9,23 @@ import { DetailsFileWatcher } from "./DetailsFileWatcher";
 import { DetailsLinkDefinitionProvider } from "./DetailsLinkDefinitionProvider";
 //import { DetailsDocuLinkCompletionItemProvider } from "./DetailsDocuLinkCompletionItemProvider";
 
-let state = new DetailsExtensionState();
+let state : DetailsExtensionState | undefined=undefined;
+//let state = new DetailsExtensionState();
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
-export function activate(context: vscode.ExtensionContext) {
+export async function activate(context: vscode.ExtensionContext) {
   console.log("vscode-brimborium-details-link activate");
   // Use the console to output diagnostic information (console.log) and errors (console.error)
   // This line of code will only be executed once when your extension is activated
   //   console.log(
-  //     'Congratulations, your extension "vscode-brimborium-details-link" is now active!'
-  //   );
+    //     'Congratulations, your extension "vscode-brimborium-details-link" is now active!'
+    //   );
+  state = new DetailsExtensionState(context);
   context.subscriptions.push(
     state
   );
-
-  context.subscriptions.push(
-    vscode.workspace.onDidChangeWorkspaceFolders((event) => {
-      event.removed.forEach((folder) => {
-        state.removeWorkspaceFolder(folder);
-      });
-      event.added.forEach((folder) => {
-        state.addWorkspaceFolder(folder);
-      });
-    })
-  );
-  vscode.workspace.workspaceFolders?.forEach((folder) => {
-    state.addWorkspaceFolder(folder);
-  });
+  await state.initialize();
 
   context.subscriptions.push(
     vscode.commands.registerCommand(
@@ -86,7 +75,18 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 async function showDetails() {
-  vscode.window.showInformationMessage(JSON.stringify(state));
+  if (state){
+    vscode.window.showInformationMessage(state.toString());
+    state.log(state.toString());
+    let json = "";
+    try{
+       json = JSON.stringify(state.getDetails());
+    } catch (error) {
+      state.log((error as any).toString());
+      json = (error as any).toString();
+    }
+    state.log(`Details: ${json}`);
+  }
 
   //const rootFolder = vscode.workspace.asRelativePath("details.json");
   //const detailsJson = vscode.workspace.asRelativePath("details.json");
@@ -113,4 +113,8 @@ async function showDetails() {
 }
 
 // This method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+  if (state){
+    state.dispose();
+  }
+}

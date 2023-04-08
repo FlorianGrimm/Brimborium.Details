@@ -54,18 +54,23 @@ public static class MatchUtility {
     public static DetailData? ParseMatch(
         StringSlice value,
         PathData ownMatchPath,
-        string? optionalPrefix,
+        string[]? listOptionalPrefix,
         int line, int offset) {
         // § details/Syntax-Marker.md#Parse § Parse a line        
         var startAsOffset = value.Range.Start.Value;
 
         var text = value.TrimWhile(IsWhitespaceNorNewLine);
 
-        if (optionalPrefix is not null
-            && optionalPrefix.ReadWordIfMatches(ref text)) { text = text.TrimWhile(IsWhitespaceNorNewLine); }
+        if (listOptionalPrefix is not null && listOptionalPrefix.Length>0){
+            foreach(var optionalPrefix in listOptionalPrefix) {
+                if (optionalPrefix.ReadWordIfMatches(ref text)) { 
+                    text = text.TrimWhile(IsWhitespaceNorNewLine); 
+                    break;
+                }
+            }
+        }
 
         var startAfterOptional = text.Range.Start.Value;
-
         {
             // § details/Syntax-Marker.md#Parse/Anchor parse §# Anchor Comment
             if (ParagraphHash.ReadWordIfMatches(ref text)) {

@@ -1,8 +1,9 @@
 import * as vscode from "vscode";
 import type { DetailsExtensionState } from "./DetailsExtensionState";
 
+// TODO: c# and this is different
 const regExpDetailscode = new RegExp(
-  "detailscode://([^ #]*)([#][1-9]*)?([§].*)?",
+  "detailscode://([^ #]*)([#][1-9]+)?([§].*)?",
   "g"
 );
 

@@ -11,12 +11,13 @@ import type { DetailsExtensionState } from "./DetailsExtensionState";
 export class DetailsCodeLinkDefinitionProvider
   implements vscode.DocumentLinkProvider<vscode.DocumentLink>
 {
+  // TODO: c# and this is different
   regExpDetailscodeGlobal = new RegExp(
-    "detailscode://([^ #]*)([#][1-9]*)?([§].*)?",
+    "detailscode://([^ #]*)([#][1-9]+)?([§].*)?",
     "g"
   );
   regExpDetailscodeLocal = new RegExp(
-    "detailscode://([^ #]*)([#][1-9]*)?([§].*)?",
+    "detailscode://([^ #]*)([#][1-9]+)?([§].*)?",
   );
   constructor(private state: DetailsExtensionState) {
 

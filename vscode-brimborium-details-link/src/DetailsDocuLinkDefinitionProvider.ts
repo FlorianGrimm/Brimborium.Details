@@ -15,7 +15,8 @@ export class DetailsDocuLinkDefinitionProvider
   regexpDetailsLocal: RegExp;
 
   constructor(private state: DetailsExtensionState) {
-    const e = "details://([^)#]*)([#][1-9]*)?([§].*)?";
+    // TODO: c# and this is different
+    const e = "details://([^)#]*)([#][1-9]+)?([§].*)?";
     this.regexpDetailsGlobal = new RegExp(e, "g");
     this.regexpDetailsLocal = new RegExp(e);
   }
@@ -70,30 +71,36 @@ export class DetailsDocuLinkDefinitionProvider
     token: vscode.CancellationToken
   ) /*: vscode.ProviderResult<DetailsDocumentLink>*/ {
     if (link.filename === undefined) {
+      console.log("resolveDocumentLink: link.filename === undefined");
       return undefined;
     }
     const workspaceState = this.state.getWorkspaceStateByFileName(
       link.filename
     );
     if (workspaceState === undefined) {
+      console.log("resolveDocumentLink: %s: workspaceState === undefined",link.filename);
       return undefined;
     }
     const detailsRoot = await workspaceState.getDetailsRoot(token);
     if (detailsRoot === undefined) {
+      console.log("resolveDocumentLink: %s: detailsRoot === undefined",link.filename);
       return undefined;
     }
 
     if (!link.tooltip) {
+      console.log("resolveDocumentLink: %s: tooltip === undefined",link.filename);
       return undefined;
     }
 
     const match = link.tooltip.match(this.regexpDetailsLocal);
     if (match === null) {
+      console.log("resolveDocumentLink: %s: tooltip does not match",link.tooltip);
       return undefined;
     }
 
     let targetPath = match[1];
     if (!targetPath) {
+      console.log("resolveDocumentLink: %s: tooltip match is falsy",link.tooltip);
       return undefined;
     }
 
@@ -102,6 +109,7 @@ export class DetailsDocuLinkDefinitionProvider
     }
     const targetUri = await workspaceState.getDetailsPath(targetPath, token);
     if (targetUri === undefined) {
+      console.log("resolveDocumentLink: %s: targetUri === undefined",link.tooltip);
       return undefined;
     }
 
