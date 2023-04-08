@@ -71,50 +71,50 @@ export class DetailsDocuLinkDefinitionProvider
     token: vscode.CancellationToken
   ) /*: vscode.ProviderResult<DetailsDocumentLink>*/ {
     if (link.filename === undefined) {
-      console.log("resolveDocumentLink: link.filename === undefined");
+      this.state.log("resolveDocumentLink: link.filename === undefined");
       return undefined;
     }
-    const workspaceState = this.state.getWorkspaceStateByFileName(
+    const workspaceStateDetails = this.state.getWorkspaceStateWithDetails();
+    if (workspaceStateDetails === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: workspaceStateDetails === undefined"`);
+      return undefined;
+    }
+    const workspaceStateFile = this.state.getWorkspaceStateByFileName(
       link.filename
     );
-    if (workspaceState === undefined) {
-      console.log("resolveDocumentLink: %s: workspaceState === undefined",link.filename);
+    if (workspaceStateFile === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: workspaceStateFile === undefined"`);
       return undefined;
     }
-    const detailsRoot = await workspaceState.getDetailsRoot(token);
-    if (detailsRoot === undefined) {
-      console.log("resolveDocumentLink: %s: detailsRoot === undefined",link.filename);
-      return undefined;
-    }
-
     if (!link.tooltip) {
-      console.log("resolveDocumentLink: %s: tooltip === undefined",link.filename);
+      this.state.log(`resolveDocumentLink: ${link.filename}: tooltip === undefined`);
       return undefined;
     }
-
     const match = link.tooltip.match(this.regexpDetailsLocal);
     if (match === null) {
-      console.log("resolveDocumentLink: %s: tooltip does not match",link.tooltip);
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: tooltip does not match`);
       return undefined;
     }
 
     let targetPath = match[1];
     if (!targetPath) {
-      console.log("resolveDocumentLink: %s: tooltip match is falsy",link.tooltip);
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: tooltip match is falsy`);
       return undefined;
     }
-
+    
+    // let documentSection = match[2];
+    
     if (token.isCancellationRequested) {
       return undefined;
     }
-    const targetUri = await workspaceState.getDetailsPath(targetPath, token);
+
+    const targetUri =await this.state.getDetailsFilePath(workspaceStateDetails, workspaceStateFile, targetPath, token);
     if (targetUri === undefined) {
-      console.log("resolveDocumentLink: %s: targetUri === undefined",link.tooltip);
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: targetUri === undefined`);
       return undefined;
     }
 
     link.target = targetUri;
-    console.log("resolveDocumentLink: %s", targetUri.toString());
     return link;
   }
 }

@@ -166,13 +166,47 @@ export class DetailsExtensionState {
     return result;
   }
   
-  getListWorkspaceState():WorkspaceState[]{
+  getListWorkspaceStateWithDetails():WorkspaceState[]{
     const result:WorkspaceState[]=[];
     for (const workspaceState of this.workspaceStates.values()) {
+      const details = workspaceState.getDetails();
+      if (details !== undefined){
         result.push(workspaceState);
+      }
     }
     return result;
   }
+
+  getWorkspaceStateWithDetails():WorkspaceState | undefined{
+    const result:WorkspaceState[]=[];
+    for (const workspaceState of this.workspaceStates.values()) {
+      const details = workspaceState.getDetails();
+      if (details !== undefined){
+        result.push(workspaceState);
+      }
+    }
+    if (result.length === 1){
+      return result[0];
+    }
+    // TODO: think about it
+    return undefined;
+  }
+
+  async getDetailsFilePath(
+    workspaceStateDetails: WorkspaceState,
+    workspaceStateFile: WorkspaceState,
+    targetPath:string, 
+    token: vscode.CancellationToken): Promise<vscode.Uri | undefined> {
+    return await workspaceStateDetails.getDetailsFilePath(workspaceStateFile, targetPath, token);
+  }
+  async getCodeFilePath(
+    workspaceStateDetails: WorkspaceState,
+    workspaceStateFile: WorkspaceState,
+    targetPath:string, 
+    token: vscode.CancellationToken): Promise<vscode.Uri | undefined> {
+    return await workspaceStateDetails.getCodeFilePath(workspaceStateFile, targetPath, token);
+  }
+  
 }
 
 export class StateCommunication {

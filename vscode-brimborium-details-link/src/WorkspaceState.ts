@@ -34,38 +34,87 @@ export class WorkspaceState {
     }
 
     public dispose() {
-        if (this.detailsFileWatcher){
+        if (this.detailsFileWatcher) {
             this.detailsFileWatcher.dispose();
         }
     }
 
     toString() {
-        return `WorkspaceState: ${this.id} - ${JSON.stringify(this.details??{})}`;
+        return `WorkspaceState: ${this.id} - ${JSON.stringify(this.details ?? {})}`;
     }
 
-    setDetails(details: DetailsJSON | undefined){
+    setDetails(details: DetailsJSON | undefined) {
         this.details = details;
         // this.stateCommunication.setDetails(details);
     }
-    hasDetails(){
+    hasDetails() {
         return this.details !== undefined;
     }
-    getDetails(){
+    getDetails() {
         return this.details;
     }
 
-    async getDetailsPath(targetPath: string, token: vscode.CancellationToken): Promise<vscode.Uri> {
-        throw new Error("Method not implemented.");
+    getDetailsRoot(token: vscode.CancellationToken): vscode.Uri | undefined {
+        return this.details?.detailsRootUri;
     }
 
-    async getDetailsRoot(token: vscode.CancellationToken): Promise<vscode.Uri> {
-        throw new Error("Method not implemented.");
+    async getDetailsFilePath(
+        workspaceFile: WorkspaceState,
+        targetPath: string,
+        token: vscode.CancellationToken): Promise<vscode.Uri | undefined> {
+        if (this.details === undefined) {
+            return undefined;
+        }
+        if (this.details.detailsFolderUri === undefined) {
+            return undefined;
+        }
+        {
+            const resultPath = vscode.Uri.joinPath(this.details.detailsFolderUri, targetPath);
+            if (await fileUtilities.exists(resultPath, vscode.FileType.File)) {
+                return resultPath;
+            }
+        }
+        {
+            if (token.isCancellationRequested) { return undefined; }
+        }
+        {
+            const resultPath = vscode.Uri.joinPath(workspaceFile.workspaceFolder.uri, targetPath);
+            if (await fileUtilities.exists(resultPath, vscode.FileType.File)) {
+                return resultPath;
+            }
+        }
+
+        return undefined;
     }
 
-    async getCodePath(targetPath: string, token: vscode.CancellationToken): Promise<vscode.Uri> {
-        throw new Error("Method not implemented.");
+    async getCodeFilePath(
+        workspaceFile: WorkspaceState,
+        targetPath: string,
+        token: vscode.CancellationToken
+    ): Promise<vscode.Uri | undefined> {
+        if (this.details === undefined) {
+            return undefined;
+        }
+        if (this.details.detailsRootUri === undefined) {
+            return undefined;
+        }
+        {
+            const resultPath = vscode.Uri.joinPath(this.details.detailsRootUri, targetPath);
+            if (await fileUtilities.exists(resultPath, vscode.FileType.File)) {
+                return resultPath;
+            }
+        }
+        {
+            if (token.isCancellationRequested) { return undefined; }
+        }
+        {
+            const resultPath = vscode.Uri.joinPath(workspaceFile.workspaceFolder.uri, targetPath);
+            if (await fileUtilities.exists(resultPath, vscode.FileType.File)) {
+                return resultPath;
+            }
+        }
+        return undefined;
     }
-
 }
 
 export class WorkspaceStateCommunication {
@@ -73,7 +122,7 @@ export class WorkspaceStateCommunication {
         private readonly workspaceState: WorkspaceState
     ) {
     }
-    setDetails(details: DetailsJSON | undefined){
+    setDetails(details: DetailsJSON | undefined) {
         this.workspaceState.setDetails(details);
     }
 }

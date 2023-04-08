@@ -13,11 +13,11 @@ export class DetailsCodeLinkDefinitionProvider
 {
   // TODO: c# and this is different
   regExpDetailscodeGlobal = new RegExp(
-    "detailscode://([^ #]*)([#][1-9]+)?([§].*)?",
+    "detailscode://([^ #]*)([#][0-9]+)?([§].*)?",
     "g"
   );
   regExpDetailscodeLocal = new RegExp(
-    "detailscode://([^ #]*)([#][1-9]+)?([§].*)?",
+    "detailscode://([^ #]*)([#][0-9]+)?([§].*)?",
   );
   constructor(private state: DetailsExtensionState) {
 
@@ -70,43 +70,62 @@ export class DetailsCodeLinkDefinitionProvider
     token: vscode.CancellationToken
   ) /*: vscode.ProviderResult<vscode.DocumentLink>*/ {
     if (link.filename === undefined) {
+      this.state.log("resolveDocumentLink: link.filename === undefined");
       return undefined;
     }
-    const workspaceState = this.state.getWorkspaceStateByFileName(
+    const workspaceStateDetails = this.state.getWorkspaceStateWithDetails();
+    if (workspaceStateDetails === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: workspaceStateDetails === undefined"`);
+      return undefined;
+    }
+    const workspaceStateFile = this.state.getWorkspaceStateByFileName(
       link.filename
     );
-    if (workspaceState === undefined) {
+    if (workspaceStateFile === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: workspaceStateFile === undefined"`);
       return undefined;
     }
-    const detailsRoot = await workspaceState.getDetailsRoot(token);
-    if (detailsRoot === undefined) {
-      return undefined;
-    }
-
     if (!link.tooltip) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: tooltip === undefined`);
       return undefined;
     }
 
     const match = link.tooltip.match(this.regExpDetailscodeLocal);
     if (match === null) {
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: tooltip does not match`);
       return undefined;
     }
 
     let targetPath = match[1];
     if (!targetPath) {
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: tooltip match is falsy`);
       return undefined;
+    }
+
+    let lineNumberText = match[2];
+    let lineNumber = 0;
+    if (lineNumberText) {
+      lineNumberText = lineNumberText.substring(1);
+      lineNumber = parseInt(lineNumberText);
     }
 
     if (token.isCancellationRequested) {
       return undefined;
     }
-    const targetUri = await workspaceState.getCodePath(targetPath, token);
+
+    const targetUri =await this.state.getCodeFilePath(workspaceStateDetails, workspaceStateFile, targetPath, token);
     if (targetUri === undefined) {
       return undefined;
     }
 
-    link.target = targetUri;
-    console.log("resolveDocumentLink: %s", targetUri.toString());
+    link.target = targetUri.with({ fragment: lineNumberText });
+    this.state.log(`resolveDocumentLink: ${link.target}`);
+    // if (lineNumber <= 0) {
+    //   this.state.log(`resolveDocumentLink: ${targetUri}`);
+    // } else {
+    //   //link.range = new vscode.Range(new vscode.Position(lineNumber-1, 0), new vscode.Position(lineNumber-1, 0));
+    //   this.state.log(`resolveDocumentLink: ${targetUri} ${lineNumber}`);
+    // }
     return link;
   }
 }

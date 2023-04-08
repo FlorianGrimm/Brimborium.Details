@@ -71,43 +71,50 @@ export class DetailsLinkDefinitionProvider
     token: vscode.CancellationToken
   ) /*: vscode.ProviderResult<vscode.DocumentLink>*/ {
     if (link.filename === undefined) {
+      this.state.log("resolveDocumentLink: link.filename === undefined");
       return undefined;
     }
-    const workspaceState = this.state.getWorkspaceStateByFileName(
+    const workspaceStateDetails = this.state.getWorkspaceStateWithDetails();
+    if (workspaceStateDetails === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: workspaceStateDetails === undefined"`);
+      return undefined;
+    }
+    const workspaceStateFile = this.state.getWorkspaceStateByFileName(
       link.filename
     );
-    if (workspaceState === undefined) {
-      return undefined;
-    }
-    const detailsRoot = await workspaceState.getDetailsRoot(token);
-    if (detailsRoot === undefined) {
+    if (workspaceStateFile === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: workspaceStateFile === undefined"`);
       return undefined;
     }
 
     if (!link.tooltip) {
+      this.state.log(`resolveDocumentLink: ${link.filename}: tooltip === undefined`);
       return undefined;
     }
 
     const match = link.tooltip.match(this.regexpDetailsLocal);
     if (match === null) {
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: tooltip does not match`);
       return undefined;
     }
 
     let targetPath = match[2];
     if (!targetPath) {
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: tooltip match is falsy`);
       return undefined;
     }
 
     if (token.isCancellationRequested) {
       return undefined;
     }
-    const targetUri = await workspaceState.getDetailsPath(targetPath, token);
+    const targetUri = await workspaceStateDetails.getDetailsFilePath(workspaceStateFile, targetPath, token);
     if (targetUri === undefined) {
+      this.state.log(`resolveDocumentLink: ${link.tooltip}: targetUri === undefined`);
       return undefined;
     }
 
     link.target = targetUri;
-    console.log("resolveDocumentLink: %s", targetUri.toString());
+    this.state.log(`resolveDocumentLink: ${targetUri}`);
     return link;
   }
 }
