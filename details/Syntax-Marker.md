@@ -17,7 +17,7 @@ bla
 
 - detailscode://Brimborium.Details.Library.Tests/Parse/MatchUtilityTests.cs#170 § test // §# todo.md
 - detailscode://Brimborium.Details.Library.Tests/Parse/MatchUtilityTests.cs#186 § test // §# todo.md comment
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#69 § parse §# Anchor Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#74 § parse §# Anchor Comment
 
 ## ParagraphCommand
 
@@ -27,7 +27,7 @@ bla
 
 §> Show-List
 
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#97 § parse §> Command_Path Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#102 § parse §> Command_Path Comment
 
 ## Paragraph
 
@@ -35,7 +35,7 @@ bla
 
 §> Show-List
 
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#136 § parse §_Path§Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#141 § parse §_Path§Comment
 
 ## DetailsLink
 
@@ -43,7 +43,7 @@ bla
 
 §> Show-List
 
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#172 § parse details://path WS Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#177 § parse details://path WS Comment
 
 ## DetailscodeLink
 
@@ -51,7 +51,7 @@ bla
 
 §> Show-List
 
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#173 § parse detailscode://path WS Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#178 § parse detailscode://path WS Comment
 
 ## DetailsLinkMarkdown
 
@@ -59,7 +59,7 @@ bla
 
 §> Show-List
 
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#202 § parse detailscode://path WS Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#207 § parse detailscode://path WS Comment
 
 ## DetailscodeLinkMarkdown
 
@@ -67,5 +67,5 @@ bla
 
 §> Show-List
 
-- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#203 § parse detailscode://path WS Comment
+- detailscode://Brimborium.Details.Library/Parse/MatchUtility.cs#208 § parse detailscode://path WS Comment
 

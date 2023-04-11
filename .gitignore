@@ -350,3 +350,4 @@ MigrationBackup/
 .ionide/
 /Brimborium.Details.Language/.antlr
 /Brimborium.Details.Language/gen
+/detailsWriterContext.json
