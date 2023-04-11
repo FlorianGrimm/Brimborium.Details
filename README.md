@@ -130,3 +130,4 @@ if a Short Description is present it will be shown next (distinct for many §-ma
 
 
 dotnet run --project .\Brimborium.Details\ -- --DetailsConfiguration C:\github.com\FlorianGrimm\Brimborium.Details\details.json
+https://github.com/kaby76/lsp-types
