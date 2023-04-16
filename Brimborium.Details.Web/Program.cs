@@ -1,6 +1,3 @@
-using Brimborium.Details.Cfg;
-using Brimborium.Details.Service;
-
 namespace Brimborium.Details;
 
 public class Program {
@@ -30,10 +27,6 @@ public class Program {
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddHostedService<DetailsHostedService>();
-        // builder.Services.AddSpaStaticFiles(configuration => {
-        //     configuration.RootPath = "wwwroot";
-        // });
-        // builder.UseSpaStaticFiles();
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -55,66 +48,34 @@ public class Program {
         }
 
         var distFolder = @"C:\github.com\FlorianGrimm\Brimborium.Details\Brimborium.Details.WebClient\dist\brimborium.details.web-client";
-        // app.UseStaticFiles(new StaticFileOptions {
-        //     // Requires the following import:
-        //     // using System.IO;
-        //     // using Microsoft.Extensions.FileProviders;
-        //     FileProvider = new PhysicalFileProvider(
-        //             distFolder
-        //             //Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")
-        //             ),
-        //     RequestPath = "/app",
+        var fileExtensionContentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+        app.MapGet("/app", async (HttpContext httpContext) => {
+            var filePathIndex = Path.Combine(distFolder, "index.html");
 
-        //     // OnPrepareResponse = ctx =>
-        //     // {
-        //     //     ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
-        //     // }
-        // });
-        app.Map("/app", (appApp) => {
-             appApp.UseSpaStaticFiles(new StaticFileOptions {
-                FileProvider = new PhysicalFileProvider(
-                        distFolder
-                        //Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")
-                        ),
-                RequestPath = "/app",
-
-                // OnPrepareResponse = ctx =>
-                // {
-                //     ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
-                // }
-            });
-            appApp.UseSpa(
-                (spa) => {
-                    //spa.Options.DefaultPage = "/app/index.html";
-                    spa.Options.DefaultPage = "/app/index.html";
-                    spa.Options.SourcePath = distFolder;
-                    //spa.Options.SourcePath = @"/app";
-                    // spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions() {
-                    //     FileProvider = new PhysicalFileProvider(distFolder),
-                    //     RequestPath = "/app"
-                    // };
-                    // if (app.Environment.IsDevelopment())
-                    // {
-                    //     spa.UseAngularCliServer("start");
-                    // }
-                }
-            );
+            if (File.Exists(filePathIndex)) {
+                httpContext.Response.ContentType = "text/html";
+                await httpContext.Response.SendFileAsync(filePathIndex);
+            } else {
+                httpContext.Response.StatusCode = 404;
+            }
         });
-        // app.UseSpa(
-        //     (spa) => {
-        //         spa.Options.DefaultPage = "/app/index.html";
-        //         spa.Options.SourcePath = distFolder;
-        //         //spa.Options.SourcePath = @"/app";
-        //         spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions() {
-        //             FileProvider = new PhysicalFileProvider(distFolder),
-        //             RequestPath = "/app"
-        //         };
-        //         // if (app.Environment.IsDevelopment())
-        //         // {
-        //         //     spa.UseAngularCliServer("start");
-        //         // }
-        //     }
-        // );
+        app.MapGet("/app/{*path}", async (string path, HttpContext httpContext) => {
+            var filePath = Path.Combine(distFolder, path);
+            if (File.Exists(filePath)) {
+                if (fileExtensionContentTypeProvider.TryGetContentType(filePath, out var contentType)){
+                    httpContext.Response.ContentType = contentType;                
+                }
+                await httpContext.Response.SendFileAsync(filePath);
+            } else {
+                var filePathIndex = Path.Combine(distFolder, "index.html");
+                if (File.Exists(filePath)) {
+                    httpContext.Response.ContentType = "text/html";
+                    await httpContext.Response.SendFileAsync(filePathIndex);
+                } else {
+                    httpContext.Response.StatusCode = 404;
+                }
+            }
+        });
 
         app.MapRazorPages();
 

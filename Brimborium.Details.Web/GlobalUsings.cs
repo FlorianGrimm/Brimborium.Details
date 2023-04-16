@@ -24,7 +24,6 @@ global using global::Microsoft.Extensions.Options;
 global using global::Microsoft.Extensions.Hosting;
 global using global::Microsoft.Extensions.FileProviders;
 global using global::Microsoft.AspNetCore.Builder;
-global using global::Microsoft.AspNetCore.SpaServices;
 
 global using global::Microsoft.CodeAnalysis.MSBuild;
 global using global::Microsoft.CodeAnalysis.CSharp;
