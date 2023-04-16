@@ -1,6 +1,4 @@
-﻿using Brimborium.Details.Parse;
-
-namespace Brimborium.Details;
+﻿namespace Brimborium.Details;
 
 [Brimborium.Registrator.Singleton()]
 public partial class DetailsRunnerService {

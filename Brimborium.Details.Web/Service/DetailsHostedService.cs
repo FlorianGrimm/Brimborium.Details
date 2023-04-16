@@ -2,26 +2,30 @@
 
 public partial class DetailsHostedService
     : BackgroundService {
-    private readonly RootRepository _DetailsRepository;
+    private readonly IRootRepositoryFactory _DetailsRepositoryFactory;
     private readonly DetailsRunnerService _DetailsLogicService;
+    private readonly ISolutionDataRepository _SolutionDataRepository;
     private readonly ILogger<DetailsHostedService> _Logger;
 
     public DetailsHostedService(
-        RootRepository detailsRepository,
+        IRootRepositoryFactory detailsRepository,
         DetailsRunnerService detailsLogicService,
+        ISolutionDataRepository solutionDataRepository,
         ILogger<DetailsHostedService> logger) {
-        this._DetailsRepository = detailsRepository;
+        this._DetailsRepositoryFactory = detailsRepository;
         this._DetailsLogicService = detailsLogicService;
+        this._SolutionDataRepository = solutionDataRepository;
         this._Logger = logger;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-        var solutionData = this._DetailsRepository.GetSolutionData();
+        var solutionData = this._SolutionDataRepository.GetSolutionData();        
         if (solutionData is null) {
-            this._Logger.LogError("SolutionData is not valid.");
-            return; 
+            this._Logger.LogError("SolutionInfo is not valid");
+            System.Console.Error.WriteLine("SolutionInfo is not valid");
+            return;
         }
-
-        await this._DetailsLogicService.ExecuteAsync(this._DetailsRepository, stoppingToken);
+        var rootRepository = this._DetailsRepositoryFactory.Get(solutionData);
+        await this._DetailsLogicService.ExecuteAsync(rootRepository, stoppingToken);
     }
 }

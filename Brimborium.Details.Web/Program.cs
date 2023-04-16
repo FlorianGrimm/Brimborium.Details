@@ -26,11 +26,14 @@ public class Program {
                     .AddClasses()
                     .UsingAttributes();
             });
-        
+
         // Add services to the container.
         builder.Services.AddRazorPages();
         builder.Services.AddHostedService<DetailsHostedService>();
-
+        // builder.Services.AddSpaStaticFiles(configuration => {
+        //     configuration.RootPath = "wwwroot";
+        // });
+        // builder.UseSpaStaticFiles();
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -40,7 +43,7 @@ public class Program {
             app.UseHsts();
         }
 
-        app.UseHttpsRedirection();
+        //app.UseHttpsRedirection();
         app.UseStaticFiles();
 
         app.UseRouting();
@@ -51,7 +54,70 @@ public class Program {
             c.MapMinimalAPIController(app);
         }
 
+        var distFolder = @"C:\github.com\FlorianGrimm\Brimborium.Details\Brimborium.Details.WebClient\dist\brimborium.details.web-client";
+        // app.UseStaticFiles(new StaticFileOptions {
+        //     // Requires the following import:
+        //     // using System.IO;
+        //     // using Microsoft.Extensions.FileProviders;
+        //     FileProvider = new PhysicalFileProvider(
+        //             distFolder
+        //             //Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")
+        //             ),
+        //     RequestPath = "/app",
+
+        //     // OnPrepareResponse = ctx =>
+        //     // {
+        //     //     ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
+        //     // }
+        // });
+        app.Map("/app", (appApp) => {
+             appApp.UseSpaStaticFiles(new StaticFileOptions {
+                FileProvider = new PhysicalFileProvider(
+                        distFolder
+                        //Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images")
+                        ),
+                RequestPath = "/app",
+
+                // OnPrepareResponse = ctx =>
+                // {
+                //     ctx.Context.Response.Headers.Append("Cache-Control", "public,max-age=600");
+                // }
+            });
+            appApp.UseSpa(
+                (spa) => {
+                    //spa.Options.DefaultPage = "/app/index.html";
+                    spa.Options.DefaultPage = "/app/index.html";
+                    spa.Options.SourcePath = distFolder;
+                    //spa.Options.SourcePath = @"/app";
+                    // spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions() {
+                    //     FileProvider = new PhysicalFileProvider(distFolder),
+                    //     RequestPath = "/app"
+                    // };
+                    // if (app.Environment.IsDevelopment())
+                    // {
+                    //     spa.UseAngularCliServer("start");
+                    // }
+                }
+            );
+        });
+        // app.UseSpa(
+        //     (spa) => {
+        //         spa.Options.DefaultPage = "/app/index.html";
+        //         spa.Options.SourcePath = distFolder;
+        //         //spa.Options.SourcePath = @"/app";
+        //         spa.Options.DefaultPageStaticFileOptions = new StaticFileOptions() {
+        //             FileProvider = new PhysicalFileProvider(distFolder),
+        //             RequestPath = "/app"
+        //         };
+        //         // if (app.Environment.IsDevelopment())
+        //         // {
+        //         //     spa.UseAngularCliServer("start");
+        //         // }
+        //     }
+        // );
+
         app.MapRazorPages();
+
 
         var ctsMain = new CancellationTokenSource();
         System.Console.CancelKeyPress += delegate (object? sender, ConsoleCancelEventArgs e) {
